@@ -1,0 +1,15 @@
+
+*.pyc
+*.ps1
+*.cmd
+*.pyc
+*.json
+*.yml
+*.ts
+*.md
+*.markdown
+*.pyc
+*.pyc
+node_modules/
+__pycache__/
+uploads/
