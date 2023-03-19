@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
             crossorigin="anonymous"></script>
@@ -14,8 +15,53 @@
 </head>
 <body>
     <div class="d-flex flex-row">
-        <div class="w-25 vh-100 bg-secondary bg-gradient bg-opacity-10">
-            
+        <div class="w-25 vh-100 bg-secondary bg-gradient bg-opacity-10 ">
+            <div class="my-3 px-3">
+                <label for="formFile" class="form-label h4">Upload Signal</label>
+                <input class="form-control" type="file" id="signaluploadfile">
+            </div>
+            <div class="text-divider">OR</div>
+            <br>
+            <h4 class="px-3">Signal composer</h4>
+            <div class="input-group mb-3 px-3">
+                <span class="input-group-text" id="inputGroup-sizing-default">Frequency (Hz)</span>
+                <input type="text" class="form-control" aria-label="Sizing example input"
+                    aria-describedby="inputGroup-sizing-default" id="frequency">
+            </div>
+            <div class="input-group mb-3 px-3">
+                <span class="input-group-text" id="inputGroup-sizing-default">Amplitude (mV)</span>
+                <input type="text" class="form-control" aria-label="Sizing example input"
+                    aria-describedby="inputGroup-sizing-default" id="amplitude">
+            </div>
+            <div class="d-grid gap-2 col-6 mx-auto ">
+            <button type="button" class="btn btn-primary" id="addsignalcomposer">Add Signal</button></div>
+            <hr>
+                <div class="input-group mb-3 px-3">
+                    <span class="input-group-text" id="inputGroup-sizing-default">Sampling Frequency (Hz)</span>
+                    <input type="number" class="form-control" aria-label="Sizing example input"
+                        aria-describedby="inputGroup-sizing-default" id="samplingfrequency">
+                </div>
+                <div class="px-3">
+                <h4 >SNR</h4>
+                <input type="range" name="noise" id="noise" min="0" max="200" class="w-100 " id="snr">
+                <div>value:<span id="noisevalue"></span></div>
+                </div>
+                <!-- <div class="d-grid gap-2 col-6 mx-auto ">
+                    <button type="button" class="btn btn-primary">Add Noise</button>
+                </div> -->
+                <hr>
+                <div class="px-3">
+                    <h4>Choose component</h4>
+                <select class="form-select" aria-label="Default select example" id="components">
+                    <option selected>Open this select menu</option>
+                    <option value="1">One</option>
+                    
+                </select>
+                <br>
+                <div class="d-grid gap-2 col-6 mx-auto ">
+                    <button type="button" class="btn btn-primary" id="removecomponent">Remove Component</button>
+                </div>
+            </div>
         </div>
         <div class="p-4">
             <h1 class="">Sampling Theory Studio</h1>
