@@ -46,5 +46,8 @@ function createPlot(graphElement) {
     responsive: true,
   };
 
-  Plotly.newPlot(graphElement, [], layout, config);
+  Plotly.newPlot(graphElement, [], layout, {
+    displaylogo: false,
+    responsive: true,
+  });
 }

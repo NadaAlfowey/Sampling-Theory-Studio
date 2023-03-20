@@ -58,3 +58,6 @@ app.post(
     }
   }
 );
+app.listen(port, () => {
+  console.log(`server is on http://localhost:${port}`);
+});
