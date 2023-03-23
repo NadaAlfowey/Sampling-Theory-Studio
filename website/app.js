@@ -30,7 +30,7 @@ function createPlot(graphElement) {
           dragmode: false,
           zoom: false,
         },
-      range: [0, 5],
+      //range: [0, 5],
       title: "Frequency (Hz)",
       zoom: 1000,
     },
@@ -50,51 +50,49 @@ function createPlot(graphElement) {
 SNRrange.addEventListener("change",()=>{
   SNRvalue.innerHTML = SNRrange.value;
   let signalData;
-  console.log(signalGraph.data[0]);
-  console.log(uploadedSignals);
-  if(signalGraph.data[0].signalType==="composed"){
+  if (signalGraph.data[0].signalType === "composed") {
     signalData = composedSignals;
-  }
-  else{
+  } else {
     signalData = uploadedSignals;
   }
   // calculate the power of signal (amplitude)
-  const squaredSignal = signalData[0].y.map((amplitude) => amplitude ** 2);
+  //signal power = signal values ^2
+  const squaredSignal = signalData[0].y.map((signalAmplitude) =>
+    Math.pow(signalAmplitude, 2)
+  );
   // calculate the average of the squared samples
-  const signalPower = squaredSignal.reduce((sum, value) => sum + value, 0) / signalData[0].x.length;
+  const signalPower =
+    squaredSignal.reduce((sum, value) => sum + value, 0) /
+    signalData[0].x.length;
+  //generate noise
+  let noiseArr = [];
+  for (let i = 0; i < signalData[0].x.length; i++) {
+    //generate noise signal and scale noise signal to the range of the signal power.
+    //scaling matches the amplitude range of the noise to the amplitude range of the signal so that signal does not completely become drowned out by noise
+    const noiseValue = Math.random() * Math.sqrt(signalPower);
+    noiseArr.push(noiseValue);
+  }
   //calculate noise power
-  const noisePower = signalPower / SNRrange.value;
-
-  const noisySignal = generateNoise(signalData, noisePower);
-  update={'y':[noisySignal]};
-  Plotly.update(signalGraph,update,{},[0]);
+  const squaredNoise = noiseArr.map((noiseAmplitude) =>
+    Math.pow(noiseAmplitude, 2)
+  );
+  const noisePower =
+    squaredNoise.reduce((sum, value) => sum + value, 0) / noiseArr.length;
+  //calculate attenuation factor SNR = signal power/ A * noise power
+  //attenuation is used to scale the generated noise signal before adding it to the original signal. 
+  //This helps to achieve the desired SNR level while preserving the original characteristics of the signal.
+  const attenuation = signalPower / (SNRrange.value * noisePower);
+  //multiply each val in the noise by the attenuation factor
+  noiseArr = noiseArr.map((noise) => noise * attenuation);
+  //add the noise to the original signal
+  let noisySignal = [];
+  for (let i = 0; i < noiseArr.length; i++) {
+    noisySignal.push(signalData[0].y[i] + noiseArr[i]);
+  }
+  //const noisySignal = generateNoise(signalData, noisePower);
+  update = { y: [noisySignal] };
+  Plotly.update(signalGraph, update, {}, [0]);
 });
-
-// function calculateSignalPower(graphElement){
-//   // calculate the power of signal (amplitude)
-//   const squaredSignal = graphElement.data[0].y.map((amplitude) => amplitude ** 2);
-//   // calculate the average of the squared samples
-//   const averagePower = squaredSignal.reduce((sum, value) => sum + value, 0) / graphElement.data[0].x.length;
-//   return averagePower;
-// }
-
-// function calculateNoisePower(graphElement,signalPower){
-//     //const signalPower = calculateSignalPower(graphElement.data[0].y,graphElement.data[0].x);
-//     const noisePower = signalPower / SNRrange.value;
-//     const noisySignal = generateNoise(graphElement.data[0].x.length,noisePower);
-// }
-
-function generateNoise(signal,noisePower){
-  let noiseArr= [];
-  console.log(signal[0].x.length);
-    for (let i = 0; i < signal[0].x.length; i++) {
-      //generate noise signal and scale noise signal to the range of the noise power.
-      const noiseValue = Math.random() * Math.sqrt(noisePower);
-      noiseArr.push(noiseValue);
-    }
-    const noisySignal = signal[0].y.map((amplitude, index) => amplitude + noiseArr[index]);
-    return noisySignal;
-}
 
 uploadFile.addEventListener("change", (event) => {
     const file = event.target.files[0];
