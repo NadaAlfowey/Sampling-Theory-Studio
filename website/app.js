@@ -50,23 +50,24 @@ function createPlot(graphElement) {
 SNRrange.addEventListener("change",()=>{
   SNRvalue.innerHTML = SNRrange.value;
   let signalData;
-  if (signalGraph.data[0].signalType === "composed") {
+  if (signalGraph.data[signalGraph.data.length-1].signalType === "composed") {
     signalData = composedSignals;
   } else {
     signalData = uploadedSignals;
   }
   // calculate the power of signal (amplitude)
   //signal power = signal values ^2
-  const squaredSignal = signalData[0].y.map((signalAmplitude) =>
+  console.log(signalData.length - 1);
+  const squaredSignal = signalData[signalData.length-1].y.map((signalAmplitude) =>
     Math.pow(signalAmplitude, 2)
   );
   // calculate the average of the squared samples
   const signalPower =
     squaredSignal.reduce((sum, value) => sum + value, 0) /
-    signalData[0].x.length;
+    signalData[signalData.length - 1].x.length;
   //generate noise
   let noiseArr = [];
-  for (let i = 0; i < signalData[0].x.length; i++) {
+  for (let i = 0; i < signalData[signalData.length - 1].x.length; i++) {
     //generate noise signal and scale noise signal to the range of the signal power.
     //scaling matches the amplitude range of the noise to the amplitude range of the signal so that signal does not completely become drowned out by noise
     const noiseValue = Math.random() * Math.sqrt(signalPower);
@@ -87,11 +88,11 @@ SNRrange.addEventListener("change",()=>{
   //add the noise to the original signal
   let noisySignal = [];
   for (let i = 0; i < noiseArr.length; i++) {
-    noisySignal.push(signalData[0].y[i] + noiseArr[i]);
+    noisySignal.push(signalData[signalData.length - 1].y[i] + noiseArr[i]);
   }
   //const noisySignal = generateNoise(signalData, noisePower);
   update = { y: [noisySignal] };
-  Plotly.update(signalGraph, update, {}, [0]);
+  Plotly.update(signalGraph, update, {}, [signalGraph.data.length-1]);
 });
 
 uploadFile.addEventListener("change", (event) => {
@@ -123,10 +124,9 @@ function composeCosineSignal(){
     wave.x.push(i);
     wave.y.push(value);
     wave.signalType = "composed";
-
   }
   composedSignals.push(wave);
- Plotly.addTraces(signalGraph, wave);
+  Plotly.addTraces(signalGraph, wave);
 }
 
 function convertCsvToTrace(csvdata) {
