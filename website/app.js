@@ -1,4 +1,3 @@
-
 let signalGraph = document.getElementById("signal");
 let reconstructedGraph = document.getElementById("reconstructed");
 let differenceGraph = document.getElementById("difference");
@@ -12,6 +11,7 @@ let SNRrange = document.getElementById("noise");
 let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
+samplingFrequency.addEventListener("click", sampleData);
 
 let uploadedSignals = [];
 let composedSignals = [];
@@ -157,55 +157,106 @@ function updateSignalComponentsList() {
   });
 }
 function convertCsvToTrace(csvdata) {
-  let signal = {};
-  let x = csvdata.map(arrRow => arrRow.col1);
-  let y = csvdata.map(arrRow => arrRow.col2);
-  signal["x"] = x;
-  signal["y"] = y;
-  signal["signalType"] = 'uploaded';
-  console.log(signal);
-  uploadedSignals.push(signal);
-  Plotly.addTraces(signalGraph, signal);
+  let signal = {}; // create a new empty object
+  let x = csvdata.map(arrRow => arrRow.col1); // extract the x-values from the CSV data and store them in an array
+  let y = csvdata.map(arrRow => arrRow.col2); // extract the y-values from the CSV data and store them in an array
+  signal["x"] = x; // add the x-values to the signal object
+  signal["y"] = y; // add the y-values to the signal object
+  signal["signalType"] = 'uploaded'; // add a new property to the signal object to indicate that it was uploaded
+  console.log(signal); // log the signal object to the console for debugging purposes
+  uploadedSignals.push(signal); // add the signal object to the uploadedSignals array
+  Plotly.addTraces(signalGraph, signal); // add the signal trace to the plot
 }
-function sampleSignal(signal, samplingFrequency) {
-  const sampledSignal = { x: [], y: [] };
-  const samplingPeriod = 1 / samplingFrequency;
 
-  for (let i = 0; i < signal.x.length; i++) {
-    if (i % samplingPeriod === 0) {
-      sampledSignal.x.push(signal.x[i]);
-      sampledSignal.y.push(signal.y[i]);
-    }
-  }
-
-  return sampledSignal;
+function sampleData() {
+   // Determine sampling rate based on Nyquist–Shannon sampling theorem
+   let maxFreq = getMaxFrequency(uploadedSignals); // get the maximum frequency of the uploaded signal using the Nyquist–Shannon sampling theorem
+   let samplingRate = maxFreq * 2; // set the sampling rate to twice the maximum frequency of the signal
+ 
+   // Perform sampling
+   let sampledData = []; // create an empty array to store the sampled data
+   let data = uploadedSignals[uploadedSignals.length - 1]; // get the last uploaded signal
+   let numSamples = data.x.length; // get the number of samples in the signal
+   let sampleInterval = 1 / samplingRate; // calculate the time interval between samples
+   let t = 0; // initialize the time variable to zero
+   for (let i = 0; i < numSamples; i++) {
+     if (t >= data.x[i]) { // if the current time is greater than or equal to the current x-value
+       sampledData.push({ // add the current x- and y-values to the sampled data array
+         x: data.x[i],
+         y: data.y[i]
+       });
+       t -= sampleInterval; // decrement the time variable by the sample interval
+     }
+     t += sampleInterval; // increment the time variable by the sample interval
+   }
+ 
+console.log(sampledData);
+  // Plot sampled data
+Plotly.addTraces(signalGraph, { // add a new trace to the plot
+    x: sampledData.map(d => d.x), // extract the x-values from the sampled data array
+    y: sampledData.map(d => d.y),
+    mode: "markers",
+    marker: {
+      color: "red",
+      size: 5
+    },
+    name: "Sampled Data"
+  });
 }
-function reconstructSignal(sampledSignal, originalSignalLength) {
-  const reconstructedSignal = { x: [], y: [] };
 
-  for (let i = 0; i < originalSignalLength; i++) {
-    let sum = 0;
-    for (let j = 0; j < sampledSignal.x.length; j++) {
-      const t = i - sampledSignal.x[j];
-      const sinc = t === 0 ? 1 : Math.sin(Math.PI * t) / (Math.PI * t);
-      sum += sampledSignal.y[j] * sinc;
-    }
-    reconstructedSignal.x.push(i);
-    reconstructedSignal.y.push(sum);
-  }
 
-  return reconstructedSignal;
+
+function getMaxFrequency(signal) {
+  const lastSignal = signal[signal.length - 1]; // get the last signal in the array
+  const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal
+  const numSamples = lastSignal.x.length;
+  const period = duration / (numSamples - 1); // period of signal
+  const maxFrequency = 1 / (2 * period); // Nyquist frequency
+  return maxFrequency;
 }
-function calculateDifference(originalSignal, reconstructedSignal) {
-  const differenceSignal = { x: [], y: [] };
 
-  for (let i = 0; i < originalSignal.x.length; i++) {
-    differenceSignal.x.push(i);
-    differenceSignal.y.push(originalSignal.y[i] - reconstructedSignal.y[i]);
-  }
 
-  return differenceSignal;
-}
+
+
+// function sampleSignal(signal, samplingFrequency) {
+//   const sampledSignal = { x: [], y: [] };
+//   const samplingPeriod = 1 / samplingFrequency;
+
+//   for (let i = 0; i < signal.x.length; i++) {
+//     if (i % samplingPeriod === 0) {
+//       sampledSignal.x.push(signal.x[i]);
+//       sampledSignal.y.push(signal.y[i]);
+//     }
+//   }
+
+//   return sampledSignal;
+// }
+// function reconstructSignal(sampledSignal, originalSignalLength) {
+//   const reconstructedSignal = { x: [], y: [] };
+
+//   for (let i = 0; i < originalSignalLength; i++) {
+//     let sum = 0;
+//     for (let j = 0; j < sampledSignal.x.length; j++) {
+//       const t = i - sampledSignal.x[j];
+//       const sinc = t === 0 ? 1 : Math.sin(Math.PI * t) / (Math.PI * t);
+//       sum += sampledSignal.y[j] * sinc;
+//     }
+//     reconstructedSignal.x.push(i);
+//     reconstructedSignal.y.push(sum);
+//   }
+
+//   return reconstructedSignal;
+// }
+// function calculateDifference(originalSignal, reconstructedSignal) {
+//   const differenceSignal = { x: [], y: [] };
+
+//   for (let i = 0; i < originalSignal.x.length; i++) {
+//     differenceSignal.x.push(i);
+//     differenceSignal.y.push(originalSignal.y[i] - reconstructedSignal.y[i]);
+//   }
+
+//   return differenceSignal;
+// }
 samplingFrequency.addEventListener("change", () => {
   const signalData = signalGraph.data[0];
   const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
@@ -216,6 +267,7 @@ samplingFrequency.addEventListener("change", () => {
   Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
 });
+
 removeSignalComponentButton.addEventListener("click", () => {
   const selectedIndex = signalComponentSelect.selectedIndex;
   if (selectedIndex >= 0) {
@@ -251,16 +303,16 @@ signalComponentSelect.addEventListener("change", () => {
 //   });
 // }
 
-function updateGraphs() {
-  const signalData = signalGraph.data[0];
-  const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
-  const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
-  const differenceSignal = calculateDifference(signalData, reconstructedSignal);
+// function updateGraphs() {
+//   const signalData = signalGraph.data[0];
+//   const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+//   const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
+//   const differenceSignal = calculateDifference(signalData, reconstructedSignal);
 
-  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
-  Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
-  Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
-}
+//   Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+//   Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
+//   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+// }
 
 // Update the signal components list whenever a new signal is added or removed
 signalComposerButton.addEventListener("click", updateSignalComponentsList);
@@ -269,4 +321,4 @@ removeSignalComponentButton.addEventListener("click", updateSignalComponentsList
 // Update the graphs whenever a new signal is added, removed, or modified
 signalComposerButton.addEventListener("click", updateGraphs);
 removeSignalComponentButton.addEventListener("click", updateGraphs);
-samplingFrequency.addEventListener("change", updateGraphs);
+// samplingFrequency.addEventListener("change", updateGraphs);

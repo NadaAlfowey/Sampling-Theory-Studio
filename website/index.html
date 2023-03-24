@@ -39,17 +39,18 @@
                 <div class="input-group mb-3 px-3">
                     <span class="input-group-text" id="inputGroup-sizing-default">Sampling Frequency (Hz)</span>
                     <input type="number" class="form-control" aria-label="Sizing example input"
-                        aria-describedby="inputGroup-sizing-default" id="samplingfrequency">
+                        aria-describedby="inputGroup-sizing-default" id="">
                 </div>
+                <button id="samplingfrequency">Sample Data</button>
                 <div class="px-3">
                 <h4 >Normalized</h4>
-                <input type="range" name="noise" id="noise" min="1" max="500" class="w-100 " id="normalized" step="1" value="0">
-                <div>value:<span id="noisevalue">0</span></div>
+                <input type="range" name="noise" id="noise" min="1" max="4" class="w-100 " id="normalized" step="1" value="0">
+                <div>value:<span id="normalizedValue">0</span></div>
                 </div>
                 <div class="px-3">
                 <h4 >Actual Frequency</h4>
                 <input type="range" name="noise" id="noise" min="1" max="500" class="w-100 " id="actualF" step="1" value="0">
-                <div>value:<span id="noisevalue">0</span></div>
+                <div>value:<span id="freqValue">0</span></div>
                 </div>
                 <div class="px-3">
                 <h4 >SNR</h4>
