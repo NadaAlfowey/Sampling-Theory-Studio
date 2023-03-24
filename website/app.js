@@ -13,8 +13,8 @@ let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
 
-//let uploadedSignals = [];
-//let composedSignals = [];
+let uploadedSignals = [];
+let composedSignals = [];
 let signals=[];
 
 document.onload = createPlot(signalGraph);
@@ -123,9 +123,10 @@ function composeCosineSignal() {
     var value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
     wave.x.push(i);
     wave.y.push(value);
+    
   }
-  !signals?signals.push(wave):null;
-  //composedSignals.push(wave);
+   //!signals?signals.push(wave):null;
+  composedSignals.push(wave);
   addSignals(wave);
   //Plotly.addTraces(signalGraph, wave);
 }
@@ -224,6 +225,7 @@ removeSignalComponentButton.addEventListener("click", () => {
     if (signalIndex >= 0) {
       composedSignals.splice(signalIndex, 1);
       Plotly.deleteTraces(signalGraph, signalIndex);
+      composeCosineSignal();
     }
   }
 });
@@ -241,15 +243,6 @@ signalComponentSelect.addEventListener("change", () => {
   }
 });
 
-// function updateSignalComponentsList() {
-//   signalComponentSelect.innerHTML = "";
-//   composedSignals.forEach((signal, index) => {
-//     const option = document.createElement("option");
-//     option.value = signal.signalType;
-//     option.text = `Signal ${index + 1}: ${signal.signalType}`;
-//     signalComponentSelect.add(option);
-//   });
-// }
 
 function updateGraphs() {
   const signalData = signalGraph.data[0];
@@ -260,6 +253,27 @@ function updateGraphs() {
   Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
   Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+}
+
+
+function removeComponent(){
+  let frequency = composerFrequency.value; // frequency in Hz
+  let amplitude = composerAmplitude.value; // peak amplitude
+  let wave = { x: [], y: [], signalType: "composed", frequency: frequency , amplitude: amplitude };
+  for (let i = 0; i < 1000; i++) {
+    let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
+    var value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
+    wave.x.push(i);
+    wave.y.push(value);
+  }
+  composedSignals.push(wave);
+  Plotly.addTraces(signalGraph, wave);
+  
+  if (composedSignals.length > 0) {
+    const firstSignal = composedSignals[0];
+    const amplitudeArray = new Array(1000).fill(firstSignal.amplitude);
+    Plotly.restyle(signalGraph, { y: [amplitudeArray] }, 0); // set y attribute of first trace to amplitude of first signal
+  }
 }
 
 // Update the signal components list whenever a new signal is added or removed
