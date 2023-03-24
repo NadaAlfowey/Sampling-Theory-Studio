@@ -12,6 +12,7 @@ let SNRrange = document.getElementById("noise");
 let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
+let samplingRInput=document.getElementById("sampling-rate-input");
 
 let signals=[];
 let NumComposedSignals=0;
