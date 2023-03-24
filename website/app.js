@@ -14,6 +14,8 @@ let removeSignalComponentButton = document.getElementById("removecomponent");
 let samplingRInput=document.getElementById("sampling-rate-input");
 
 let signalUploaded = false; // add a flag to track whether a signal has been uploaded or not
+let isFirst=true;
+let sampledData = []; // create an empty array to store the sampled data
 let uploadedSignals = [];
 let composedSignals = [];
 
@@ -181,17 +183,17 @@ function convertCsvToTrace(csvdata) {
 
   signalUploaded = true; // set the signalUploaded flag to true to indicate that a signal has been uploaded
 }
+
 // Get the sampling rate from the input field and pass it to the sampleData function
 samplingRInput.addEventListener("change", function() {
   let userSampRate = parseInt(this.value);
   sampleData(userSampRate);
 });
-let isFirst=true;
-let sampledData = []; // create an empty array to store the sampled data
+
 function sampleData(samplingRate) {
 if (isFirst==false)
 {
-  Plotly.deleteTraces(signalGraph, sampledData.from({length: signalGraph.data.length}, (_, i) => i));
+  Plotly.deleteTraces(signalGraph, -1);
   sampledData = [];
 }
   let maxFreq = getMaxFrequency(uploadedSignals);
