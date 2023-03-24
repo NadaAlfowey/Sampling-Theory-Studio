@@ -13,8 +13,6 @@ let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
 
-//let uploadedSignals = [];
-//let composedSignals = [];
 let signals=[];
 let NumComposedSignals=0;
 
@@ -39,8 +37,6 @@ function createPlot(graphElement) {
     yaxis: {
       title: "Amplitude",
     },
-    // dragmode: false,
-    // zoommode: false,
   };
   Plotly.newPlot(graphElement, [], layout, {
     displaylogo: false,
@@ -125,7 +121,7 @@ function composeCosineSignal() {
 function addSignals(newSignal){
   if(signalGraph.data.length!=0){
     for(let amp=0; amp<newSignal.y.length ; amp++){
-      newSignal.y[amp]=signalGraph.data[signalGraph.data.length-1].y[amp] + newSignal.y[amp];
+      newSignal.y[amp]=signalGraph.data[0].y[amp] + newSignal.y[amp];
     }
     Plotly.update(signalGraph, { y: [newSignal.y], x: [newSignal.x] }, {}, 0);
     if(signals.length!=0){
@@ -150,8 +146,8 @@ function updateSignalComponentsList(frequency, amplitude) {
 
 function convertCsvToTrace(csvdata) {
   let uploadedSignal = {};
-  let x = csvdata.map(arrRow => arrRow.col1);
-  let y = csvdata.map(arrRow => arrRow.col2);
+  let x = csvdata.map((arrRow) => arrRow.col1).slice(0, 1000);
+  let y = csvdata.map((arrRow) => arrRow.col2).slice(0, 1000);
   uploadedSignal["x"] = x;
   uploadedSignal["y"] = y;
   //signals.push(uploadedSignal);
