@@ -16,6 +16,7 @@ let removeSignalComponentButton = document.getElementById("removecomponent");
 //let uploadedSignals = [];
 //let composedSignals = [];
 let signals=[];
+let NumComposedSignals=0;
 
 document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
@@ -50,49 +51,38 @@ function createPlot(graphElement) {
 
 SNRrange.addEventListener("change", () => {
   SNRvalue.innerHTML = SNRrange.value;
-  let signalData=signals;
-  // if (signalGraph.data[signalGraph.data.length-1].signalType === "composed") {
-  //   signalData = composedSignals;
-  // } else {
-  //   signalData = uploadedSignals;
-  // }
   // calculate the power of signal (amplitude)
   //signal power = signal values ^2
-  const squaredSignal = signalData[signalData.length-1].y.map((signalAmplitude) =>
-    Math.pow(signalAmplitude, 2)
-  );
+  const squaredSignal = signals[0].y.map((signalAmplitude) => Math.pow(signalAmplitude, 2));
   // calculate the average of the squared samples
-  const signalPower =
-    squaredSignal.reduce((sum, value) => sum + value, 0) /
-    signalData[signalData.length - 1].x.length;
+  const signalPower = squaredSignal.reduce((sum, value) => sum + value, 0) / signals[0].x.length;
   //generate noise
-  let noiseArr = [];
-  for (let i = 0; i < signalData[signalData.length - 1].x.length; i++) {
+  let generatedNoiseArr = [];
+  for (let generatedNoiseIndex = 0; generatedNoiseIndex < signals[0].x.length; generatedNoiseIndex++) {
     //generate noise signal and scale noise signal to the range of the signal power.
     //scaling matches the amplitude range of the noise to the amplitude range of the signal so that signal does not completely become drowned out by noise
     const noiseValue = Math.random() * Math.sqrt(signalPower);
-    noiseArr.push(noiseValue);
+    generatedNoiseArr.push(noiseValue);
   }
   //calculate noise power
-  const squaredNoise = noiseArr.map((noiseAmplitude) =>
+  const squaredNoise = generatedNoiseArr.map((noiseAmplitude) =>
     Math.pow(noiseAmplitude, 2)
   );
-  const noisePower =
-    squaredNoise.reduce((sum, value) => sum + value, 0) / noiseArr.length;
+  const noisePower = squaredNoise.reduce((sum, value) => sum + value, 0) / generatedNoiseArr.length;
   //calculate attenuation factor SNR = signal power/ A * noise power
   //attenuation is used to scale the generated noise signal before adding it to the original signal. 
   //This helps to achieve the desired SNR level while preserving the original characteristics of the signal.
   const attenuation = signalPower / (SNRrange.value * noisePower);
   //multiply each val in the noise by the attenuation factor
-  noiseArr = noiseArr.map((noise) => noise * attenuation);
+  generatedNoiseArr = generatedNoiseArr.map((noise) => noise * attenuation);
   //add the noise to the original signal
   let noisySignal = [];
-  for (let i = 0; i < noiseArr.length; i++) {
-    noisySignal.push(signalData[signalData.length - 1].y[i] + noiseArr[i]);
+  for (let noiseElementIndex = 0; noiseElementIndex < generatedNoiseArr.length; noiseElementIndex++) {
+    noisySignal.push(signals[0].y[noiseElementIndex] + generatedNoiseArr[noiseElementIndex]);
   }
   //const noisySignal = generateNoise(signalData, noisePower);
   update = { y: [noisySignal] };
-  Plotly.update(signalGraph, update, {}, [signalGraph.data.length-1]);
+  Plotly.update(signalGraph, update, {}, [0]);
 });
 
 uploadFile.addEventListener("change", (event) => {
@@ -117,40 +107,45 @@ signalComposerButton.addEventListener("click", () => {
 function composeCosineSignal() {
   let frequency = composerFrequency.value; // frequency in Hz
   let amplitude = composerAmplitude.value; // peak amplitude
-  let wave = { x: [], y: [], signalType: "composed", frequency: frequency , amplitude: amplitude };
+  let wave = { x: [], y: [] }; //, signalType: "composed", frequency: frequency , amplitude: amplitude
   for (let i = 0; i < 1000; i++) {
     let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
     var value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
     wave.x.push(i);
     wave.y.push(value);
   }
-  !signals?signals.push(wave):null;
-  //composedSignals.push(wave);
+  if (signals.length == 0) {
+    signals.push(wave);
+  }
   addSignals(wave);
-  //Plotly.addTraces(signalGraph, wave);
+  NumComposedSignals++;
+  updateSignalComponentsList(frequency,amplitude);
 }
 
 function addSignals(newSignal){
   if(signalGraph.data.length!=0){
     for(let amp=0; amp<newSignal.y.length ; amp++){
-      newSignal.y[amp]=signalGraph.data[signalGraph.data.length-1].y[amp+1] + newSignal.y[amp];
+      newSignal.y[amp]=signalGraph.data[signalGraph.data.length-1].y[amp] + newSignal.y[amp];
     }
     Plotly.update(signalGraph, { y: [newSignal.y], x: [newSignal.x] }, {}, 0);
-    signals[0]=newSignal;
-      //Plotly.deleteTraces(signalGraph, 0);
+    if(signals.length!=0){
+      signals.pop();
+      signals.push(newSignal);
+    }
   }
   else
   Plotly.addTraces(signalGraph, newSignal);
 }
 
-function updateSignalComponentsList() {
-  signalComponentSelect.innerHTML = "";
-  composedSignals.forEach((signal, index) => {
+function updateSignalComponentsList(frequency, amplitude) {
+  //signalComponentSelect.innerHTML = "";
+  //composedSignals.forEach((signal, index) => {
     const option = document.createElement("option");
-    option.value = signal.signalType;
-    option.text = `Signal ${index + 1}: ${signal.signalType} (Frequency: ${signal.frequency} Hz, Amplitude: ${signal.amplitude})`;
+    //option.value = signal.signalType;
+    option.text = `Signal ${NumComposedSignals}: cos (Frequency: ${frequency} Hz, Amplitude: ${amplitude})`;
+    option.selected=true;
     signalComponentSelect.add(option);
-  });
+  //});
 }
 
 function convertCsvToTrace(csvdata) {
@@ -159,11 +154,13 @@ function convertCsvToTrace(csvdata) {
   let y = csvdata.map(arrRow => arrRow.col2);
   uploadedSignal["x"] = x;
   uploadedSignal["y"] = y;
-  uploadedSignal["signalType"] = "uploaded";
   //signals.push(uploadedSignal);
-  !signals ? signals.push(uploadedSignal) : null;
-  //uploadedSignals.push(uploadedSignal);
-  Plotly.addTraces(signalGraph, uploadedSignal);
+  if (signals.length == 0) {
+    signals.push(uploadedSignal);
+    Plotly.addTraces(signalGraph, uploadedSignal);
+  }
+  else
+  addSignals(uploadedSignal);
 }
 
 function sampleSignal(signal, samplingFrequency) {
@@ -263,8 +260,8 @@ function updateGraphs() {
 }
 
 // Update the signal components list whenever a new signal is added or removed
-signalComposerButton.addEventListener("click", updateSignalComponentsList);
-removeSignalComponentButton.addEventListener("click", updateSignalComponentsList);
+//signalComposerButton.addEventListener("click", updateSignalComponentsList);
+//removeSignalComponentButton.addEventListener("click", updateSignalComponentsList);
 
 // Update the graphs whenever a new signal is added, removed, or modified
 signalComposerButton.addEventListener("click", updateGraphs);
