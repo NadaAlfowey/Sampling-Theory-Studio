@@ -387,3 +387,66 @@ function calculateDifference(signalData, reconstructedSignal) {
 
   return differenceData;
 }
+// samplingFrequency.addEventListener("change", () => {
+//   const signalData = signalGraph.data[0];
+//   const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+//   const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
+//   const differenceSignal = calculateDifference(signalData, reconstructedSignal);
+
+//   Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+//   plotReconstructedSignal(signalData, reconstructedSignal);
+//   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+// });
+samplingFrequency.addEventListener("change", () => {
+  const signalData = signalGraph.data[0];
+  const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+  const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
+  const differenceSignal = calculateDifference(signalData, reconstructedSignal);
+
+  plotSampledSignal(signalData, sampledSignal);
+  plotReconstructedSignal(signalData, reconstructedSignal);
+  Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+});
+function plotReconstructedSignal(originalSignal, reconstructedSignal) {
+  // Clear the existing data in the reconstructed graph
+  Plotly.deleteTraces(reconstructedGraph, 0);
+
+  // Add the reconstructed signal to the reconstructed graph
+  Plotly.addTraces(reconstructedGraph, reconstructedSignal);
+}
+
+
+function sampleSignal(signalData, samplingRate) {
+  const sampledData = [];
+  const numSamples = Math.floor(signalData.x.length * samplingRate);
+  const sampleInterval = signalData.x.length / numSamples;
+
+  for (let i = 0; i < numSamples; i++) {
+    const x = i * sampleInterval;
+    const y = signalData.y[Math.floor(x)];
+
+    sampledData.push({ x: x, y: y });
+  }
+
+  return sampledData;
+}
+
+function plotSampledSignal(originalSignal, sampledSignal) {
+  // Clear the existing data in the signal graph
+  Plotly.deleteTraces(signalGraph, 0);
+
+  // Add the original signal to the signal graph
+  Plotly.addTraces(signalGraph, originalSignal);
+
+  // Add the sampled signal to the signal graph
+  Plotly.addTraces(signalGraph, {
+    x: sampledSignal.map(d => d.x),
+    y: sampledSignal.map(d => d.y),
+    mode: "markers",
+    marker: {
+      color: "red",
+      size: 5
+    },
+    name: "Sampled Data"
+  });
+}
