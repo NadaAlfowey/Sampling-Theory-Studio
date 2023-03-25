@@ -24,6 +24,7 @@ document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
 document.onload = createPlot(differenceGraph);
 
+updateGraphs();
 
 function createPlot(graphElement) {
   let layout = {
@@ -191,22 +192,24 @@ signalComponentSelect.addEventListener("change", () => {
   }
 });
 
-
+// Update the signal graph whenever the sampling rate is changed
 samplingRInput.addEventListener("change", function () {
   let userSampRate = parseInt(this.value);
-  sampleData(userSampRate);
+  // Call sampleData and store the result in sampledData
+  sampledData = sampleData(userSampRate);
 
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
   console.log('Reconstructed Data:', reconstructedData);
+
   if (reconstructedGraph.data.length != 0) {
     updateGraphs();
-  }
-  else {
-  Plotly.addTraces(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y });
-  Plotly.addTraces(differenceGraph, { x: signalGraph.data[0].x, y: signalGraph.data[0].y });
-  Plotly.addTraces(differenceGraph, { x: reconstructedGraph.data[0].x, y: reconstructedGraph.data[0].y });
+  } else {
+    Plotly.addTraces(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y });
+    Plotly.addTraces(differenceGraph, { x: signalGraph.data[0].x, y: signalGraph.data[0].y });
+    Plotly.addTraces(differenceGraph, { x: reconstructedGraph.data[0].x, y: reconstructedGraph.data[0].y });
   }
 });
+
 // Update the signal components list whenever a new signal is added or removed
 signalComposerButton.addEventListener("click", updateSignalComponentsList);
 removeSignalComponentButton.addEventListener("click", updateSignalComponentsList);
@@ -297,6 +300,11 @@ function sampleData(samplingRate) {
 
   isFirst = false;
 
+  // Add console logs to check the values
+  console.log('Sampling Rate:', samplingRate);
+  console.log('Data:', data);
+  console.log('Sampled Data:', sampledData);
+
   Plotly.addTraces(signalGraph, {
     x: sampledData.map(d => d.x),
     y: sampledData.map(d => d.y),
@@ -307,6 +315,7 @@ function sampleData(samplingRate) {
     },
     name: "Sampled Data"
   });
+  return sampledData;
 }
 
 function getMaxFrequency(signal) {
@@ -329,14 +338,20 @@ function updateSignalComponentsList() {
   });
 }
 
+
 function updateGraphs() {
   const signalData = signalGraph.data[0];
-  const sampledSignal = sampleData(samplingFrequency.value);
-  const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
-  
-  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
-  Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
-  Plotly.update(differenceGraph, [{ x: signalGraph.data[0].x, y: signalGraph.data[0].y },{x:reconstructedGraph.data[0].x, y:reconstructedGraph.data[0].y}], {}, [0,1]);
+  // Remove the direct call to sampleData
+  // const sampledSignal = sampleData(samplingFrequency.value);
+
+  // Check if sampledData is not empty
+  if (signalData && sampledData.length > 0) {
+    const reconstructedSignal = reconstructSignal(sampledData, signalData.length);
+
+    Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+    Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
+    Plotly.update(differenceGraph, [{ x: signalGraph.data[0].x, y: signalGraph.data[0].y },{x:reconstructedGraph.data[0].x, y:reconstructedGraph.data[0].y}], {}, [0,1]);
+  }
 }
 
 function sinc(x) {
