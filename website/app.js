@@ -197,7 +197,7 @@ samplingRInput.addEventListener("change", function () {
   let userSampRate = parseInt(this.value);
   // Call sampleData and store the result in sampledData
   sampledData = sampleData(userSampRate);
-
+  
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
   console.log('Reconstructed Data:', reconstructedData);
 
@@ -340,7 +340,17 @@ function updateSignalComponentsList() {
 
 
 function updateGraphs() {
+  console.log('Updating graphs...');
+  
+  if (signalGraph.data.length === 0) {
+    return; // If there is no data in the signalGraph, exit the function
+  }
   const signalData = signalGraph.data[0];
+  console.log('Signal data:', signalData);
+  const numPoints = signalData.x.length;
+  console.log('Number of points:', numPoints);
+  console.log('Signal data:', signalData);
+  console.log('Number of points:', numPoints);
   // Remove the direct call to sampleData
   // const sampledSignal = sampleData(samplingFrequency.value);
 
