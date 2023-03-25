@@ -270,3 +270,22 @@ removeSignalComponentButton.addEventListener("click", updateSignalComponentsList
 signalComposerButton.addEventListener("click", updateGraphs);
 removeSignalComponentButton.addEventListener("click", updateGraphs);
 samplingFrequency.addEventListener("change", updateGraphs);
+
+function plotReconstructedSignal(originalSignal, reconstructedSignal) {
+  // Clear the existing data in the reconstructed graph
+  Plotly.deleteTraces(reconstructedGraph, 0);
+
+  // Add the reconstructed signal to the reconstructed graph
+  Plotly.addTraces(reconstructedGraph, reconstructedSignal);
+}
+
+samplingFrequency.addEventListener("change", () => {
+  const signalData = signalGraph.data[0];
+  const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+  const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
+  const differenceSignal = calculateDifference(signalData, reconstructedSignal);
+
+  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+  plotReconstructedSignal(signalData, reconstructedSignal);
+  Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+});
