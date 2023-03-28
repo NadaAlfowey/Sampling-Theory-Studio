@@ -107,15 +107,17 @@ function composeCosineSignal() {
   for (let i = 0; i < 1000; i++) {
     let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
     var value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
-    wave.x.push(i);
+    wave.x.push(t);
     wave.y.push(value);
   }
   if (signals.length == 0) {
     signals.push(wave);
   }
+  else{
+    NumComposedSignals++;
+    updateSignalComponentsList(frequency,amplitude);
+  }
   addSignals(wave);
-  NumComposedSignals++;
-  updateSignalComponentsList(frequency,amplitude);
 }
 
 function addSignals(newSignal){
@@ -133,11 +135,29 @@ function addSignals(newSignal){
   Plotly.addTraces(signalGraph, newSignal);
 }
 
+function removeComponent(optionText) {
+  const match = optionText.match(/Frequency:\s*(\d+)\s*Hz,\s*Amplitude:\s*(\d+)/);
+  let amplitude,frequency;
+  if (match) {
+    frequency = parseInt(match[1]);
+    amplitude = parseInt(match[2]);
+  }
+  let cosSignal=[]
+  for (let i = 0; i < 1000; i++) {
+    let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
+    let value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
+    cosSignal.push(value);
+  }
+  let signalRemovedComponent=[];
+  for (let amp = 0; amp < 1000; amp++) {
+    signalRemovedComponent.push(signalGraph.data[0].y[amp] - cosSignal[amp]);
+    signals[0].y[amp] = signals[0].y[amp]- cosSignal[amp];
+  }
+  Plotly.update(signalGraph, { y: [signalRemovedComponent]}, {}, 0);
+}
+
 function updateSignalComponentsList(frequency, amplitude) {
-  //signalComponentSelect.innerHTML = "";
-  //composedSignals.forEach((signal, index) => {
     const option = document.createElement("option");
-    //option.value = signal.signalType;
     option.text = `Signal ${NumComposedSignals}: cos (Frequency: ${frequency} Hz, Amplitude: ${amplitude})`;
     option.selected=true;
     signalComponentSelect.add(option);
@@ -211,28 +231,23 @@ samplingFrequency.addEventListener("change", () => {
 
 removeSignalComponentButton.addEventListener("click", () => {
   const selectedIndex = signalComponentSelect.selectedIndex;
-  if (selectedIndex >= 0) {
-    const selectedSignal = signalComponentSelect.options[selectedIndex].value;
-    const signalIndex = composedSignals.findIndex(signal => signal.signalType === selectedSignal);
-    if (signalIndex >= 0) {
-      composedSignals.splice(signalIndex, 1);
-      Plotly.deleteTraces(signalGraph, signalIndex);
-    }
-  }
+  const selectedComponentText = signalComponentSelect.options[selectedIndex].value;
+  removeComponent(selectedComponentText);
+  signalComponentSelect.remove(selectedIndex);
 });
 
-signalComponentSelect.addEventListener("change", () => {
-  const selectedIndex = signalComponentSelect.selectedIndex;
-  if (selectedIndex >= 0) {
-    const selectedSignal = signalComponentSelect.options[selectedIndex].value;
-    const signalIndex = composedSignals.findIndex(signal => signal.signalType === selectedSignal);
-    if (signalIndex >= 0) {
-      Plotly.update(signalGraph, { visible: true }, {}, [signalIndex]);
-    } else {
-      Plotly.update(signalGraph, { visible: false }, {}, [signalIndex]);
-    }
-  }
-});
+// signalComponentSelect.addEventListener("change", () => {
+//   const selectedIndex = signalComponentSelect.selectedIndex;
+//   if (selectedIndex >= 0) {
+//     const selectedSignal = signalComponentSelect.options[selectedIndex].value;
+//     const signalIndex = composedSignals.findIndex(signal => signal.signalType === selectedSignal);
+//     if (signalIndex >= 0) {
+//       Plotly.update(signalGraph, { visible: true }, {}, [signalIndex]);
+//     } else {
+//       Plotly.update(signalGraph, { visible: false }, {}, [signalIndex]);
+//     }
+//   }
+// });
 
 // function updateSignalComponentsList() {
 //   signalComponentSelect.innerHTML = "";
