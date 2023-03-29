@@ -12,7 +12,10 @@ let SNRrange = document.getElementById("noise");
 let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
+let samplingRInput=document.getElementById("sampling-rate-input");
 
+let isFirst=true;
+let sampledData = []; // create an empty array to store the sampled data
 let signals = [];
 let NumComposedSignals = 0;
 
@@ -178,39 +181,59 @@ function convertCsvToTrace(csvdata) {
   else
     addSignals(uploadedSignal);
 }
+
+
 // Get the sampling rate from the input field and pass it to the sampleData function
 samplingRInput.addEventListener("change", function() {
   let userSampRate = parseInt(this.value);
-  sampleSignal(userSampRate);
+  sampleData(userSampRate);
 });
 
-function sampleSignal(signal, samplingFrequency) {
-  let dsp = new window.DSP.SIGNAL();
-  let spectrum = dsp.fft(signal);
-  let frequencies = dsp.getFrequencyData(samplingFrequency, spectrum);
-  let maxAmplitude = 0;
-let maxFrequency = 0;
-for (let i = 0; i < frequencies.length; i++) {
-  if (spectrum[i] > maxAmplitude) {
-    maxAmplitude = spectrum[i];
-    maxFrequency = frequencies[i];
-  }
+function sampleData(samplingRate) {
+  let numSamples=0;
+if (isFirst==false)
+{
+  Plotly.deleteTraces(signalGraph, -1);
+  sampledData = [];
 }
-let bandwidth = maxFrequency;
-let cutoffFrequency = bandwidth * 2 / samplingRate;
-let filter = dsp.createLowPass(cutoffFrequency);
-let filteredSignal = filter.process(signal);
-let sampleRate = bandwidth;
-let sampleInterval = Math.floor(samplingRate / sampleRate);
-let sampledSignal = [];
-for (let i = 0; i < filteredSignal.length; i += sampleInterval) {
-  sampledSignal.push(filteredSignal[i]);
-}
+  let maxFreq = getMaxFrequency(signals);
+  samplingRate =samplingRate|| maxFreq * 2;
+  let data = signals[signals.length - 1]; // get the last uploaded signal
+  let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
 
-   // Plot sampled data
-   Plotly.addTraces(signalGraph, { // add a new trace to the plot
-    x: sampledSignal.map(d => d.x), // extract the x-values from the sampled data array
-    y: sampledSignal.map(d => d.y), // extract the y-values from the sampled data array
+
+    numSamples = Math.floor(1 * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
+
+ 
+  //else{numSamples = Math.floor(duration * samplingRate);} // calculate the number of samples based on the duration and the desired sampling rate
+  let sampleInterval = duration / numSamples; //calculates the interval between each sample by dividing the duration of the signal by the number of samples needed
+  let t = 0; //will be used to calculate the x-value of each sampled data point
+  for (let i = 0; i < numSamples; i++) { //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
+    let x = t; //sets the x-value of the sampled data point to the current value of the t variable
+    let y = NaN; //initializes the y-value of the sampled data point to NaN, indicating that it is currently unknown
+    for (let j = 0; j < data.x.length - 1; j++) { //starts another for loop that will iterate through each data point in the original signal to find the y-value of the current sampled data point
+      if (x >= data.x[j] && x <= data.x[j+1]) { //checks if the x-value of the current sampled data point is within the range of x-values of two adjacent data points in the original signal
+        let x1 = data.x[j];
+        let y1 = data.y[j];
+        let x2 = data.x[j+1];
+        let y2 = data.y[j+1];
+        y = y1 + (y2 - y1) * (x - x1) / (x2 - x1); //calculates the y-value of the sampled data point by linearly interpolating between the y-values of the two adjacent data points in the original signal
+        break;
+      }
+    }
+    sampledData.push({ // add the current x- and y-values to the sampled data array
+      x: x,
+      y: y
+    });
+    t += sampleInterval; // increment the time variable by the sample interval
+  }
+  // console.log(signals[signals.length - 1]);
+  // console.log(sampledData);
+  isFirst=false;
+  // Plot sampled data
+  Plotly.addTraces(signalGraph, { // add a new trace to the plot
+    x: sampledData.map(d => d.x), // extract the x-values from the sampled data array
+    y: sampledData.map(d => d.y), // extract the y-values from the sampled data array
     mode: "markers", // set the plot mode to markers
     marker: {
       color: "red", // set the color of the markers to red
@@ -219,6 +242,16 @@ for (let i = 0; i < filteredSignal.length; i += sampleInterval) {
     name: "Sampled Data" // set the name of the trace to "Sampled Data"
   });  
 }
+
+function getMaxFrequency(signal) {
+  const lastSignal = signal[signal.length - 1]; // get the last signal in the array
+  const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
+  const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
+  const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
+  const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
+  return maxFrequency;
+}
+
 
 function getMaxFrequency(signal) {
   const lastSignal = signal[signal.length - 1]; // get the last signal in the array
