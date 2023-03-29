@@ -121,6 +121,8 @@ function composeCosineSignal() {
     updateSignalComponentsList(frequency, amplitude);
   }
   addSignals(wave);
+  console.log ('Fmax', getMaxFrequency(signals), 'Hz');
+
 }
 
 function addSignals(newSignal) {
@@ -270,30 +272,48 @@ function getMaxFrequency(signal) {
 
 
 function sinc(x) {
+  // If x is 0, return 1 as sinc(0) is defined to be 1
   if (x === 0) return 1;
+
+  // Calculate pi times x (πx)
   const piX = Math.PI * x;
+
+  // Calculate and return the sinc function value: sin(πx) / (πx)
   return Math.sin(piX) / piX;
 }
 
 function reconstructSignal(sampledData, numPoints) {
+  // Log the maximum frequency, sampled data, and number of points
+  console.log('Fmax', getMaxFrequency(sampledData), 'Hz');
   console.log('Sampled Data:', sampledData);
   console.log('Num Points:', numPoints);
+
+  // Initialize an object to store the reconstructed data
   const reconstructedData = { x: [], y: [] };
+
+  // Calculate the time interval (T) between consecutive sampled data points
   const T = sampledData[1].x - sampledData[0].x;
 
+  // Loop through the number of points to reconstruct the signal
   for (let i = 0; i < numPoints; i++) {
+    // Calculate the time (t) for the current point
     const t = i * T;
+
+    // Initialize a variable to store the sum of sinc function values
     let sum = 0;
 
+    // Loop through the sampled data points
     for (let n = 0; n < sampledData.length; n++) {
+      // Calculate the sinc function value for the current point and add it to the sum
       sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
     }
 
+    // Add the time (t) and the sum of sinc function values to the reconstructed data
     reconstructedData.x.push(t);
     reconstructedData.y.push(sum);
-    
   }
 
+  // Return the reconstructed data
   return reconstructedData;
 }
 function calculateDifference(originalSignal, reconstructedSignal) {
