@@ -18,6 +18,7 @@ let isFirst=true;
 let sampledData = []; // create an empty array to store the sampled data
 let signals = [];
 let NumComposedSignals = 0;
+let maxComposedFrequency = 0;
 
 document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
@@ -121,8 +122,8 @@ function composeCosineSignal() {
     updateSignalComponentsList(frequency, amplitude);
   }
   addSignals(wave);
-  console.log ('Fmax', getMaxFrequency(signals), 'Hz');
-
+  maxComposedFrequency = Math.max(maxComposedFrequency, parseFloat(frequency));
+  console.log('Fmax', maxComposedFrequency, 'Hz');
 }
 
 function addSignals(newSignal) {
@@ -188,6 +189,16 @@ function convertCsvToTrace(csvdata) {
 // Get the sampling rate from the input field and pass it to the sampleData function
 samplingRInput.addEventListener("change", function() {
   let userSampRate = parseInt(this.value);
+  // if (userSampRate < 2 * maxComposedFrequency) {
+  //   alert("Sampling rate should be at least twice the maximum frequency of the composed signals.");
+  //   return;
+  // }
+  let minSamplesPerCycle = 10; // minimum number of samples per cycle of the highest frequency signal to be sampled
+  let requiredSampRate = 2 * maxComposedFrequency * minSamplesPerCycle;
+  if (userSampRate < requiredSampRate) {
+    alert(`Sampling rate should be at least ${requiredSampRate} Hz for better visual reconstruction.`);
+    return;
+  }
   sampleData(userSampRate);
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
   console.log('Reconstructed Data:', reconstructedData);
