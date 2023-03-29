@@ -180,17 +180,7 @@ function convertCsvToTrace(csvdata) {
 }
 
 function sampleSignal(signal, samplingFrequency) {
-  const sampledSignal = { x: [], y: [] };
-  const samplingPeriod = 1 / samplingFrequency;
 
-  for (let i = 0; i < signal.x.length; i++) {
-    if (i % samplingPeriod === 0) {
-      sampledSignal.x.push(signal.x[i]);
-      sampledSignal.y.push(signal.y[i]);
-    }
-  }
-
-  return sampledSignal;
 }
 function reconstructSignal(sampledSignal, originalSignalLength) {
   const reconstructedSignal = { x: [], y: [] };
