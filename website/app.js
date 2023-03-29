@@ -207,13 +207,6 @@ if (isFirst==false)
   Plotly.deleteTraces(signalGraph, -1);
   sampledData = [];
 }
-let maxFreq = getMaxFrequency(signals);
-let nyquistRate = 2 * maxFreq;
-if (samplingRate < nyquistRate) {
-  console.log("Warning: Sampling rate is lower than Nyquist rate.");
-}
-samplingRate = nyquistRate;
-
   let data = signals[signals.length - 1]; // get the last uploaded signal
   let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
 
@@ -354,16 +347,6 @@ removeSignalComponentButton.addEventListener("click", () => {
 //   });
 // }
 
-function updateGraphs() {
-  const signalData = signalGraph.data[0];
-  // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
-  const reconstructSignal = reconstructSignal(sampledSignal, signalData.x.length);
-  const differenceSignal = calculateDifference(signalData, reconstructedSignal);
-
-  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
-  Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
-  Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
-}
 
 // Update the signal components list whenever a new signal is added or removed
 //signalComposerButton.addEventListener("click", updateSignalComponentsList);
@@ -373,3 +356,12 @@ function updateGraphs() {
 signalComposerButton.addEventListener("click", updateGraphs);
 removeSignalComponentButton.addEventListener("click", updateGraphs);
 samplingFrequency.addEventListener("change", updateGraphs);
+function updateGraphs() {
+  const signalData = signalGraph.data[0];
+  // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+  const reconstructSignal = reconstructSignal(sampledSignal, signalData.length);
+
+  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+  Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
+  Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+}
