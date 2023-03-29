@@ -197,6 +197,7 @@ samplingRInput.addEventListener("change", function() {
 });
 
 function sampleData(samplingRate) {
+  let numSamples=0;
 if (isFirst==false)
 {
   Plotly.deleteTraces(signalGraph, -1);
@@ -206,7 +207,12 @@ if (isFirst==false)
   samplingRate =samplingRate|| maxFreq * 2;
   let data = signals[signals.length - 1]; // get the last uploaded signal
   let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
-  let numSamples = Math.floor(duration * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
+
+
+    numSamples = Math.floor(1 * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
+
+ 
+  //else{numSamples = Math.floor(duration * samplingRate);} // calculate the number of samples based on the duration and the desired sampling rate
   let sampleInterval = duration / numSamples; //calculates the interval between each sample by dividing the duration of the signal by the number of samples needed
   let t = 0; //will be used to calculate the x-value of each sampled data point
   for (let i = 0; i < numSamples; i++) { //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
@@ -228,7 +234,6 @@ if (isFirst==false)
     });
     t += sampleInterval; // increment the time variable by the sample interval
   }
-  // console.log(signals);
   // console.log(signals[signals.length - 1]);
   // console.log(sampledData);
   isFirst=false;
