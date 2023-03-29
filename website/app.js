@@ -207,8 +207,13 @@ if (isFirst==false)
   Plotly.deleteTraces(signalGraph, -1);
   sampledData = [];
 }
-  // let maxFreq = getMaxFrequency(signal);
-  samplingRate =samplingRate;
+let maxFreq = getMaxFrequency(signals);
+let nyquistRate = 2 * maxFreq;
+if (samplingRate < nyquistRate) {
+  console.log("Warning: Sampling rate is lower than Nyquist rate.");
+}
+samplingRate = nyquistRate;
+
   let data = signals[signals.length - 1]; // get the last uploaded signal
   let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
 
@@ -254,14 +259,22 @@ if (isFirst==false)
   });  
 }
 
-// function getMaxFrequency(signal) {
-//   const lastSignal = signal[signal.length - 1]; // get the last signal in the array
-//   const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
-//   const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
-//   const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
-//   const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
-//   return maxFrequency;
-// }
+function getMaxFrequency(signal) {
+  const N = signal.length;
+  const Fs = N / signal[N-1].x; // sampling frequency
+  const df = Fs / N; // frequency resolution
+  let maxAmp = 0;
+  let maxFreq = 0;
+  for (let i = 0; i < N; i++) {
+    const amp = Math.sqrt(signal[i].y * signal[i].y + signal[i].x * signal[i].x);
+    if (amp > maxAmp) {
+      maxAmp = amp;
+      maxFreq = i * df;
+    }
+  }
+  return maxFreq;
+}
+
 
 function sinc(x) {
   if (x === 0) return 1;
