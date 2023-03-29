@@ -13,8 +13,8 @@ let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
 
-let signals=[];
-let NumComposedSignals=0;
+let signals = [];
+let NumComposedSignals = 0;
 
 document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
@@ -24,12 +24,12 @@ function createPlot(graphElement) {
   let layout = {
     title: { title: "Click Here<br>to Edit Chart Title" },
     xaxis: {
-        rangeslider: {
-          range: [0, 1],
-          visible: true,
-          dragmode: false,
-          zoom: false,
-        },
+      rangeslider: {
+        range: [0, 1],
+        visible: true,
+        dragmode: false,
+        zoom: false,
+      },
       //range: [0, 5],
       title: "Frequency (Hz)",
       zoom: 1000,
@@ -113,54 +113,54 @@ function composeCosineSignal() {
   if (signals.length == 0) {
     signals.push(wave);
   }
-  else{
+  else {
     NumComposedSignals++;
-    updateSignalComponentsList(frequency,amplitude);
+    updateSignalComponentsList(frequency, amplitude);
   }
   addSignals(wave);
 }
 
-function addSignals(newSignal){
-  if(signalGraph.data.length!=0){
-    for(let amp=0; amp<newSignal.y.length ; amp++){
-      newSignal.y[amp]=signalGraph.data[0].y[amp] + newSignal.y[amp];
+function addSignals(newSignal) {
+  if (signalGraph.data.length != 0) {
+    for (let amp = 0; amp < newSignal.y.length; amp++) {
+      newSignal.y[amp] = signalGraph.data[0].y[amp] + newSignal.y[amp];
     }
     Plotly.update(signalGraph, { y: [newSignal.y], x: [newSignal.x] }, {}, 0);
-    if(signals.length!=0){
+    if (signals.length != 0) {
       signals.pop();
       signals.push(newSignal);
     }
   }
   else
-  Plotly.addTraces(signalGraph, newSignal);
+    Plotly.addTraces(signalGraph, newSignal);
 }
 
 function removeComponent(optionText) {
   const match = optionText.match(/Frequency:\s*(\d+)\s*Hz,\s*Amplitude:\s*(\d+)/);
-  let amplitude,frequency;
+  let amplitude, frequency;
   if (match) {
     frequency = parseInt(match[1]);
     amplitude = parseInt(match[2]);
   }
-  let cosSignal=[]
+  let cosSignal = []
   for (let i = 0; i < 1000; i++) {
     let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
     let value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
     cosSignal.push(value);
   }
-  let signalRemovedComponent=[];
+  let signalRemovedComponent = [];
   for (let amp = 0; amp < 1000; amp++) {
     signalRemovedComponent.push(signalGraph.data[0].y[amp] - cosSignal[amp]);
-    signals[0].y[amp] = signals[0].y[amp]- cosSignal[amp];
+    signals[0].y[amp] = signals[0].y[amp] - cosSignal[amp];
   }
-  Plotly.update(signalGraph, { y: [signalRemovedComponent]}, {}, 0);
+  Plotly.update(signalGraph, { y: [signalRemovedComponent] }, {}, 0);
 }
 
 function updateSignalComponentsList(frequency, amplitude) {
-    const option = document.createElement("option");
-    option.text = `Signal ${NumComposedSignals}: cos (Frequency: ${frequency} Hz, Amplitude: ${amplitude})`;
-    option.selected=true;
-    signalComponentSelect.add(option);
+  const option = document.createElement("option");
+  option.text = `Signal ${NumComposedSignals}: cos (Frequency: ${frequency} Hz, Amplitude: ${amplitude})`;
+  option.selected = true;
+  signalComponentSelect.add(option);
   //});
 }
 
@@ -176,11 +176,57 @@ function convertCsvToTrace(csvdata) {
     Plotly.addTraces(signalGraph, uploadedSignal);
   }
   else
-  addSignals(uploadedSignal);
+    addSignals(uploadedSignal);
 }
+// Get the sampling rate from the input field and pass it to the sampleData function
+samplingRInput.addEventListener("change", function() {
+  let userSampRate = parseInt(this.value);
+  sampleSignal(userSampRate);
+});
 
 function sampleSignal(signal, samplingFrequency) {
+  let dsp = new window.DSP.SIGNAL();
+  let spectrum = dsp.fft(signal);
+  let frequencies = dsp.getFrequencyData(samplingFrequency, spectrum);
+  let maxAmplitude = 0;
+let maxFrequency = 0;
+for (let i = 0; i < frequencies.length; i++) {
+  if (spectrum[i] > maxAmplitude) {
+    maxAmplitude = spectrum[i];
+    maxFrequency = frequencies[i];
+  }
+}
+let bandwidth = maxFrequency;
+let cutoffFrequency = bandwidth * 2 / samplingRate;
+let filter = dsp.createLowPass(cutoffFrequency);
+let filteredSignal = filter.process(signal);
+let sampleRate = bandwidth;
+let sampleInterval = Math.floor(samplingRate / sampleRate);
+let sampledSignal = [];
+for (let i = 0; i < filteredSignal.length; i += sampleInterval) {
+  sampledSignal.push(filteredSignal[i]);
+}
 
+   // Plot sampled data
+   Plotly.addTraces(signalGraph, { // add a new trace to the plot
+    x: sampledSignal.map(d => d.x), // extract the x-values from the sampled data array
+    y: sampledSignal.map(d => d.y), // extract the y-values from the sampled data array
+    mode: "markers", // set the plot mode to markers
+    marker: {
+      color: "red", // set the color of the markers to red
+      size: 5 // set the size of the markers to 5
+    },
+    name: "Sampled Data" // set the name of the trace to "Sampled Data"
+  });  
+}
+
+function getMaxFrequency(signal) {
+  const lastSignal = signal[signal.length - 1]; // get the last signal in the array
+  const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
+  const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
+  const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
+  const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
+  return maxFrequency;
 }
 function reconstructSignal(sampledSignal, originalSignalLength) {
   const reconstructedSignal = { x: [], y: [] };
@@ -210,7 +256,7 @@ function calculateDifference(originalSignal, reconstructedSignal) {
 }
 samplingFrequency.addEventListener("change", () => {
   const signalData = signalGraph.data[0];
-  const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+  // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
   const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
   const differenceSignal = calculateDifference(signalData, reconstructedSignal);
 
