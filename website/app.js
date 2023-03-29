@@ -207,8 +207,8 @@ if (isFirst==false)
   Plotly.deleteTraces(signalGraph, -1);
   sampledData = [];
 }
-  let maxFreq = getMaxFrequency(signal);
-  samplingRate =maxFreq * 2;
+  // let maxFreq = getMaxFrequency(signal);
+  samplingRate =samplingRate;
   let data = signals[signals.length - 1]; // get the last uploaded signal
   let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
 
@@ -254,14 +254,14 @@ if (isFirst==false)
   });  
 }
 
-function getMaxFrequency(signal) {
-  const lastSignal = signal[signal.length - 1]; // get the last signal in the array
-  const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
-  const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
-  const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
-  const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
-  return maxFrequency;
-}
+// function getMaxFrequency(signal) {
+//   const lastSignal = signal[signal.length - 1]; // get the last signal in the array
+//   const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
+//   const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
+//   const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
+//   const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
+//   return maxFrequency;
+// }
 
 function sinc(x) {
   if (x === 0) return 1;
