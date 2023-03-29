@@ -187,25 +187,36 @@ function convertCsvToTrace(csvdata) {
 samplingRInput.addEventListener("change", function() {
   let userSampRate = parseInt(this.value);
   sampleData(userSampRate);
+  const reconstructedData = reconstructSignal(sampledData, sampledData.length);
+  console.log('Reconstructed Data:', reconstructedData);
+
+  if (reconstructedGraph.data.length != 0) {
+    updateGraphs();
+  } else {
+    Plotly.addTraces(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y });
+    Plotly.addTraces(differenceGraph, { x: signalGraph.data[0].x, y: signalGraph.data[0].y });
+    Plotly.addTraces(differenceGraph, { x: reconstructedGraph.data[0].x, y: reconstructedGraph.data[0].y });
+  }
 });
 
 function sampleData(samplingRate) {
   let numSamples=0;
+  let time =0;
 if (isFirst==false)
 {
   Plotly.deleteTraces(signalGraph, -1);
   sampledData = [];
 }
-  let maxFreq = getMaxFrequency(signals);
-  samplingRate =samplingRate|| maxFreq * 2;
+  let maxFreq = getMaxFrequency(signal);
+  samplingRate =maxFreq * 2;
   let data = signals[signals.length - 1]; // get the last uploaded signal
   let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
 
+  for (let i = 0; i < 1000; i++) {
+    time = i / 1000; //
+  }
+    numSamples =(time * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
 
-    numSamples = Math.floor(1 * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
-
- 
-  //else{numSamples = Math.floor(duration * samplingRate);} // calculate the number of samples based on the duration and the desired sampling rate
   let sampleInterval = duration / numSamples; //calculates the interval between each sample by dividing the duration of the signal by the number of samples needed
   let t = 0; //will be used to calculate the x-value of each sampled data point
   for (let i = 0; i < numSamples; i++) { //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
@@ -252,30 +263,32 @@ function getMaxFrequency(signal) {
   return maxFrequency;
 }
 
-
-function getMaxFrequency(signal) {
-  const lastSignal = signal[signal.length - 1]; // get the last signal in the array
-  const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
-  const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
-  const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
-  const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
-  return maxFrequency;
+function sinc(x) {
+  if (x === 0) return 1;
+  const piX = Math.PI * x;
+  return Math.sin(piX) / piX;
 }
-function reconstructSignal(sampledSignal, originalSignalLength) {
-  const reconstructedSignal = { x: [], y: [] };
 
-  for (let i = 0; i < originalSignalLength; i++) {
+function reconstructSignal(sampledData, numPoints) {
+  console.log('Sampled Data:', sampledData);
+  console.log('Num Points:', numPoints);
+  const reconstructedData = { x: [], y: [] };
+  const T = sampledData[1].x - sampledData[0].x;
+
+  for (let i = 0; i < numPoints; i++) {
+    const t = i * T;
     let sum = 0;
-    for (let j = 0; j < sampledSignal.x.length; j++) {
-      const t = i - sampledSignal.x[j];
-      const sinc = t === 0 ? 1 : Math.sin(Math.PI * t) / (Math.PI * t);
-      sum += sampledSignal.y[j] * sinc;
+
+    for (let n = 0; n < sampledData.length; n++) {
+      sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
     }
-    reconstructedSignal.x.push(i);
-    reconstructedSignal.y.push(sum);
+
+    reconstructedData.x.push(t);
+    reconstructedData.y.push(sum);
+    
   }
 
-  return reconstructedSignal;
+  return reconstructedData;
 }
 function calculateDifference(originalSignal, reconstructedSignal) {
   const differenceSignal = { x: [], y: [] };
@@ -287,16 +300,16 @@ function calculateDifference(originalSignal, reconstructedSignal) {
 
   return differenceSignal;
 }
-samplingFrequency.addEventListener("change", () => {
-  const signalData = signalGraph.data[0];
-  // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
-  const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
-  const differenceSignal = calculateDifference(signalData, reconstructedSignal);
+// samplingFrequency.addEventListener("change", () => {
+//   const signalData = signalGraph.data[0];
+//   // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+//   const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
+//   const differenceSignal = calculateDifference(signalData, reconstructedSignal);
 
-  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
-  Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
-  Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
-});
+//   Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+//   Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
+//   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
+// });
 
 removeSignalComponentButton.addEventListener("click", () => {
   const selectedIndex = signalComponentSelect.selectedIndex;
@@ -330,8 +343,8 @@ removeSignalComponentButton.addEventListener("click", () => {
 
 function updateGraphs() {
   const signalData = signalGraph.data[0];
-  const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
-  const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
+  // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
+  const reconstructSignal = reconstructSignal(sampledSignal, signalData.x.length);
   const differenceSignal = calculateDifference(signalData, reconstructedSignal);
 
   Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
