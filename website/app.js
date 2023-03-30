@@ -299,24 +299,6 @@ function reconstructSignal(sampledData, sampledDataLength) {
   console.log("Num Points:", sampledDataLength);
   const reconstructedData = { x: [], y: [] };
 
-  //   let sampledAmplitude= sampledData.map(time=>time.y);
-  //   let sampledTime= sampledData.map(amp=>amp.x);
-  //   // Initialize an object to store the reconstructed data
-  // for (let i = 0; i < 1000; i++) {
-  //     let x = signals[0].x[i];
-  //     let sum = 0;
-  //     for (let j = 0; j < sampledTime.length; j++) {
-  //       let t = sampledTime[j];
-  //       let y = sampledAmplitude[j];
-  //       let sincValue = Math.sin(Math.PI * (x - t)) / (Math.PI * (x - t));
-  //       sum += y * sincValue;
-  //     }
-  //     reconstructedData.y.push(sum);
-  //     reconstructedData.x=signals[0].x;
-  //   }
-  //   console.log("firstreconstruction", reconstructedData);
-  //   return reconstructedData;
-  // //}
   // Calculate the time interval (T) between consecutive sampled data points
   const T = sampledData[1].x - sampledData[0].x;
   // console.log(T);
