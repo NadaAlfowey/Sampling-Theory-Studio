@@ -196,11 +196,12 @@ samplingRInput.addEventListener("change", function() {
   let minSamplesPerCycle = 10; // minimum number of samples per cycle of the highest frequency signal to be sampled
   let requiredSampRate = 2 * maxComposedFrequency * minSamplesPerCycle;
   if (userSampRate < requiredSampRate) {
-    alert(`Sampling rate should be at least ${requiredSampRate} Hz for better visual reconstruction.`);
-    return;
+    //alert(`Sampling rate should be at least ${requiredSampRate} Hz for better visual reconstruction.`);
+    //return;
   }
   sampleData(userSampRate);
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
+  console.log(sampledData.length);
   console.log('Reconstructed Data:', reconstructedData);
 
   if (reconstructedGraph.data.length != 0) {
@@ -220,8 +221,8 @@ if (isFirst==false)
   Plotly.deleteTraces(signalGraph, -1);
   sampledData = [];
 }
-  let data = signals[signals.length - 1]; // get the last uploaded signal
-  let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
+  let data = signalGraph.data[0]; // get the last uploaded signal
+  let duration = signalGraph.data[0].x[signalGraph.data[0].x.length - 1]; // get the number of samples in the signal
 
   for (let i = 0; i < 1000; i++) {
     time = i / 1000; //
@@ -285,30 +286,44 @@ function getMaxFrequency(signal) {
 function sinc(x) {
   // If x is 0, return 1 as sinc(0) is defined to be 1
   if (x === 0) return 1;
-
   // Calculate pi times x (πx)
   const piX = Math.PI * x;
-
   // Calculate and return the sinc function value: sin(πx) / (πx)
   return Math.sin(piX) / piX;
 }
 
-function reconstructSignal(sampledData, numPoints) {
+function reconstructSignal(sampledData, sampledDataLength) {
   // Log the maximum frequency, sampled data, and number of points
-  console.log('Fmax', getMaxFrequency(sampledData), 'Hz');
-  console.log('Sampled Data:', sampledData);
-  console.log('Num Points:', numPoints);
-
-  // Initialize an object to store the reconstructed data
+  console.log("Fmax", getMaxFrequency(sampledData), "Hz");
+  console.log("Sampled Data:", sampledData);
+  console.log("Num Points:", sampledDataLength);
   const reconstructedData = { x: [], y: [] };
 
+  //   let sampledAmplitude= sampledData.map(time=>time.y);
+  //   let sampledTime= sampledData.map(amp=>amp.x);
+  //   // Initialize an object to store the reconstructed data
+  // for (let i = 0; i < 1000; i++) {
+  //     let x = signals[0].x[i];
+  //     let sum = 0;
+  //     for (let j = 0; j < sampledTime.length; j++) {
+  //       let t = sampledTime[j];
+  //       let y = sampledAmplitude[j];
+  //       let sincValue = Math.sin(Math.PI * (x - t)) / (Math.PI * (x - t));
+  //       sum += y * sincValue;
+  //     }
+  //     reconstructedData.y.push(sum);
+  //     reconstructedData.x=signals[0].x;
+  //   }
+  //   console.log("firstreconstruction", reconstructedData);
+  //   return reconstructedData;
+  // //}
   // Calculate the time interval (T) between consecutive sampled data points
   const T = sampledData[1].x - sampledData[0].x;
-
+  // console.log(T);
   // Loop through the number of points to reconstruct the signal
-  for (let i = 0; i < numPoints; i++) {
+  for (let i = 0; i < signalGraph.data[0].x.length; i++) {
     // Calculate the time (t) for the current point
-    const t = i * T;
+    //const t = i /1000;
 
     // Initialize a variable to store the sum of sinc function values
     let sum = 0;
@@ -316,17 +331,18 @@ function reconstructSignal(sampledData, numPoints) {
     // Loop through the sampled data points
     for (let n = 0; n < sampledData.length; n++) {
       // Calculate the sinc function value for the current point and add it to the sum
-      sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
+      sum +=sampledData[n].y *sinc((signalGraph.data[0].x[i] - sampledData[n].x) / T);
     }
 
     // Add the time (t) and the sum of sinc function values to the reconstructed data
-    reconstructedData.x.push(t);
+    reconstructedData.x = signalGraph.data[0].x;
     reconstructedData.y.push(sum);
   }
-
-  // Return the reconstructed data
+  console.log("secondreconstruction", reconstructedData);
+  //Return the reconstructed data
   return reconstructedData;
 }
+
 function calculateDifference(originalSignal, reconstructedSignal) {
   const differenceSignal = { x: [], y: [] };
 

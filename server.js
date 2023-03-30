@@ -9,12 +9,9 @@ const upload = multer({ dest: "uploads/" }); //dest is a property in multer has 
 const csv = require("csv-parser");
 const fs = require("fs");
 const path = require("path");
+const Spline = require("spline");
 const app = express();
 //const PDFDocument = require('pdfkit');
-const Papa = require("papaparse");
-const PDFDocument = require("pdfkit-table");
-const { promisify } = require("util");
-const { stat } = require("fs");
 const plotly = require("plotly");
 
 /*USING MIDDLEWARES*/
@@ -58,6 +55,17 @@ app.post(
     }
   }
 );
+
+app.post("/reconstruct",(req,res)=>{
+  let sampledData=req.body;
+  console.log(sampledData);
+  const controlPoints = spline.getNaturalKs(
+    sampledData.map((point) => point.x),
+    sampledData.map((point) => point.y)
+  );
+  const interpolate = x => spline.getSplineYAtX(x, sampledData.map(point => point.x), controlPoints);
+
+})
 app.listen(port, () => {
   console.log(`server is on http://localhost:${port}`);
 });
