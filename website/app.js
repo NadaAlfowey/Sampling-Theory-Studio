@@ -18,6 +18,7 @@ let isFirst = true;
 let sampledData = []; // create an empty array to store the sampled data
 let signals = [];
 let NumComposedSignals = 0;
+let maxComposedFrequency = 0;
 
 document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
@@ -121,6 +122,8 @@ function composeCosineSignal() {
     updateSignalComponentsList(frequency, amplitude);
   }
   addSignals(wave);
+  maxComposedFrequency = Math.max(maxComposedFrequency, parseFloat(frequency));
+  console.log('Fmax', maxComposedFrequency, 'Hz');
 }
 
 function addSignals(newSignal) {
@@ -186,6 +189,16 @@ function convertCsvToTrace(csvdata) {
 // Get the sampling rate from the input field and pass it to the sampleData function
 samplingRInput.addEventListener("change", function () {
   let userSampRate = parseInt(this.value);
+  // if (userSampRate < 2 * maxComposedFrequency) {
+  //   alert("Sampling rate should be at least twice the maximum frequency of the composed signals.");
+  //   return;
+  // }
+  let minSamplesPerCycle = 10; // minimum number of samples per cycle of the highest frequency signal to be sampled
+  let requiredSampRate = 2 * maxComposedFrequency * minSamplesPerCycle;
+  if (userSampRate < requiredSampRate) {
+    alert(`Sampling rate should be at least ${requiredSampRate} Hz for better visual reconstruction.`);
+    return;
+  }
   sampleData(userSampRate);
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
   console.log('Reconstructed Data:', reconstructedData);
@@ -349,30 +362,49 @@ function binarySearch(arr, x) {
 
 
 function sinc(x) {
+  // If x is 0, return 1 as sinc(0) is defined to be 1
   if (x === 0) return 1;
+
+  // Calculate pi times x (πx)
   const piX = Math.PI * x;
+
+  // Calculate and return the sinc function value: sin(πx) / (πx)
   return Math.sin(piX) / piX;
 }
 
 function reconstructSignal(sampledData, numPoints) {
+  // Log the maximum frequency, sampled data, and number of points
+  console.log('Fmax', getMaxFrequency(sampledData), 'Hz');
   console.log('Sampled Data:', sampledData);
   console.log('Num Points:', numPoints);
+
+  // Initialize an object to store the reconstructed data
   const reconstructedData = { x: [], y: [] };
+
+  // Calculate the time interval (T) between consecutive sampled data points
   const T = sampledData[1].x - sampledData[0].x;
 
+  // Loop through the number of points to reconstruct the signal
   for (let i = 0; i < numPoints; i++) {
+    // Calculate the time (t) for the current point
     const t = i * T;
+
+    // Initialize a variable to store the sum of sinc function values
     let sum = 0;
 
+    // Loop through the sampled data points
     for (let n = 0; n < sampledData.length; n++) {
+      // Calculate the sinc function value for the current point and add it to the sum
       sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
     }
 
+    // Add the time (t) and the sum of sinc function values to the reconstructed data
     reconstructedData.x.push(t);
     reconstructedData.y.push(sum);
 
   }
 
+  // Return the reconstructed data
   return reconstructedData;
 }
 function calculateDifference(originalSignal, reconstructedSignal) {
