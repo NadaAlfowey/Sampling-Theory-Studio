@@ -12,9 +12,9 @@ let SNRrange = document.getElementById("noise");
 let SNRvalue = document.getElementById("noisevalue");
 let signalComponentSelect = document.getElementById("components");
 let removeSignalComponentButton = document.getElementById("removecomponent");
-let samplingRInput=document.getElementById("sampling-rate-input");
+let samplingRInput = document.getElementById("sampling-rate-input");
 
-let isFirst=true;
+let isFirst = true;
 let sampledData = []; // create an empty array to store the sampled data
 let signals = [];
 let NumComposedSignals = 0;
@@ -184,7 +184,7 @@ function convertCsvToTrace(csvdata) {
 
 
 // Get the sampling rate from the input field and pass it to the sampleData function
-samplingRInput.addEventListener("change", function() {
+samplingRInput.addEventListener("change", function () {
   let userSampRate = parseInt(this.value);
   sampleData(userSampRate);
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
@@ -199,74 +199,153 @@ samplingRInput.addEventListener("change", function() {
   }
 });
 
+// function sampleData(samplingRate) {
+//   let numSamples=0;
+//   let time =0;
+// if (isFirst==false)
+// {
+//   Plotly.deleteTraces(signalGraph, -1);
+//   sampledData = [];
+// }
+//   let data = signals[signals.length - 1]; // get the last uploaded signal
+//   let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
+
+//   for (let i = 0; i < 1000; i++) {
+//     time = i / 1000; //
+//   }
+//     numSamples =(time * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
+
+//   let sampleInterval = duration / numSamples; //calculates the interval between each sample by dividing the duration of the signal by the number of samples needed
+//   let t = 0; //will be used to calculate the x-value of each sampled data point
+//   for (let i = 0; i < numSamples; i++) { //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
+//     let x = t; //sets the x-value of the sampled data point to the current value of the t variable
+//     let y = NaN; //initializes the y-value of the sampled data point to NaN, indicating that it is currently unknown
+//     for (let j = 0; j < data.x.length - 1; j++) { //starts another for loop that will iterate through each data point in the original signal to find the y-value of the current sampled data point
+//       if (x >= data.x[j] && x <= data.x[j+1]) { //checks if the x-value of the current sampled data point is within the range of x-values of two adjacent data points in the original signal
+//         let x1 = data.x[j];
+//         let y1 = data.y[j];
+//         let x2 = data.x[j+1];
+//         let y2 = data.y[j+1];
+//         y = y1 + (y2 - y1) * (x - x1) / (x2 - x1); //calculates the y-value of the sampled data point by linearly interpolating between the y-values of the two adjacent data points in the original signal
+//         break;
+//       }
+//     }
+//     sampledData.push({ // add the current x- and y-values to the sampled data array
+//       x: x,
+//       y: y
+//     });
+//     t += sampleInterval; // increment the time variable by the sample interval
+//   }
+//   // console.log(signals[signals.length - 1]);
+//   // console.log(sampledData);
+//   isFirst=false;
+//   // Plot sampled data
+//   Plotly.addTraces(signalGraph, { // add a new trace to the plot
+//     x: sampledData.map(d => d.x), // extract the x-values from the sampled data array
+//     y: sampledData.map(d => d.y), // extract the y-values from the sampled data array
+//     mode: "markers", // set the plot mode to markers
+//     marker: {
+//       color: "red", // set the color of the markers to red
+//       size: 5 // set the size of the markers to 5
+//     },
+//     name: "Sampled Data" // set the name of the trace to "Sampled Data"
+//   });  
+// }
 function sampleData(samplingRate) {
-  let numSamples=0;
-  let time =0;
-if (isFirst==false)
-{
-  Plotly.deleteTraces(signalGraph, -1);
-  sampledData = [];
-}
-  let data = signals[signals.length - 1]; // get the last uploaded signal
-  let duration = data.x[data.x.length - 1]; // get the number of samples in the signal
-
-  for (let i = 0; i < 1000; i++) {
-    time = i / 1000; //
+  let numSamples = 0;
+  let time = 0;
+  //checks if it's not the first time the function is being called, and if so, deletes the last trace from the plot and clears the sampledData array
+  if (!isFirst) {
+    Plotly.deleteTraces(signalGraph, -1);
+    sampledData = [];
   }
-    numSamples =(time * samplingRate); // calculate the number of samples based on the duration and the desired sampling rate
-
-  let sampleInterval = duration / numSamples; //calculates the interval between each sample by dividing the duration of the signal by the number of samples needed
-  let t = 0; //will be used to calculate the x-value of each sampled data point
-  for (let i = 0; i < numSamples; i++) { //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
-    let x = t; //sets the x-value of the sampled data point to the current value of the t variable
-    let y = NaN; //initializes the y-value of the sampled data point to NaN, indicating that it is currently unknown
-    for (let j = 0; j < data.x.length - 1; j++) { //starts another for loop that will iterate through each data point in the original signal to find the y-value of the current sampled data point
-      if (x >= data.x[j] && x <= data.x[j+1]) { //checks if the x-value of the current sampled data point is within the range of x-values of two adjacent data points in the original signal
-        let x1 = data.x[j];
-        let y1 = data.y[j];
-        let x2 = data.x[j+1];
-        let y2 = data.y[j+1];
-        y = y1 + (y2 - y1) * (x - x1) / (x2 - x1); //calculates the y-value of the sampled data point by linearly interpolating between the y-values of the two adjacent data points in the original signal
-        break;
-      }
+  for (let i = 0; i < 1000; i++) {
+    time = i / 1000; 
+  }
+  //gets the last uploaded signal from the signals array
+  const data = signals[signals.length - 1];
+  //gets the duration of the signal, which is the last value in the x array
+  const duration = data.x[data.x.length - 1];
+  //calculates the number of samples to take by multiplying the time by the samplingRate
+  numSamples = time * samplingRate;
+  //calculates the time interval between each sample
+  const sampleInterval = duration / numSamples;
+  let t = 0;
+  //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
+  for (let i = 0; i < numSamples; i++) {
+    const x = t;
+    //initializes the y-value of the sampled data point to NaN, indicating that it is currently unknown
+    let y = NaN;
+    //binary search function will iterate through each data point in the original signal to find the y-value of the current sampled data point
+    //j is set to the index of the nearest value to x in data.x array, using the binarySearch function
+    let j = binarySearch(data.x, x);
+    //If j is within range of the data.x array, then y is calculated using linear interpolation between y values corresponding to x1 and x2 values
+    if (j >= 0 && j < data.x.length - 1) {
+      const x1 = data.x[j];
+      const y1 = data.y[j];
+      const x2 = data.x[j + 1];
+      const y2 = data.y[j + 1];
+      y = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
     }
-    sampledData.push({ // add the current x- and y-values to the sampled data array
+    //A new object with x and y properties is pushed to the sampledData array
+    sampledData.push({
       x: x,
       y: y
     });
-    t += sampleInterval; // increment the time variable by the sample interval
+    // increment the time variable by the sample interval
+    t += sampleInterval; 
   }
-  // console.log(signals[signals.length - 1]);
-  // console.log(sampledData);
-  isFirst=false;
-  // Plot sampled data
-  Plotly.addTraces(signalGraph, { // add a new trace to the plot
-    x: sampledData.map(d => d.x), // extract the x-values from the sampled data array
-    y: sampledData.map(d => d.y), // extract the y-values from the sampled data array
-    mode: "markers", // set the plot mode to markers
+  //isFirst is set to false to indicate that this is not the first time sampleData is being called
+  isFirst = false;
+  // add a new trace to the plot
+  Plotly.addTraces(signalGraph, {
+    // extract the x-values and y-values from the sampled data array
+    x: sampledData.map(d => d.x),
+    y: sampledData.map(d => d.y),
+    mode: "markers",
     marker: {
-      color: "red", // set the color of the markers to red
-      size: 5 // set the size of the markers to 5
+      color: "red",
+      size: 5
     },
-    name: "Sampled Data" // set the name of the trace to "Sampled Data"
-  });  
+    name: "Sampled Data"
+  });
 }
 
-function getMaxFrequency(signal) {
-  const N = signal.length;
-  const Fs = N / signal[N-1].x; // sampling frequency
-  const df = Fs / N; // frequency resolution
-  let maxAmp = 0;
-  let maxFreq = 0;
-  for (let i = 0; i < N; i++) {
-    const amp = Math.sqrt(signal[i].y * signal[i].y + signal[i].x * signal[i].x);
-    if (amp > maxAmp) {
-      maxAmp = amp;
-      maxFreq = i * df;
+function binarySearch(arr, x) {
+  let start = 0;
+  //end is set to the index of the last element in the array arr
+  let end = arr.length - 1;
+
+  while (start <= end) {
+    let mid = Math.floor((start + end) / 2);
+
+    if (arr[mid] === x) {
+      return mid;
+    } else if (arr[mid] < x) {
+      start = mid + 1;
+    } else {
+      end = mid - 1;
     }
   }
-  return maxFreq;
+  //If the function completes the loop without finding x, it returns the value of end. This value represents the index of the first element in the array that is greater than x
+  return end;
 }
+
+// function getMaxFrequency(signal) {
+//   const N = signal.length;
+//   const Fs = N / signal[N - 1].x; // sampling frequency
+//   const df = Fs / N; // frequency resolution
+//   let maxAmp = 0;
+//   let maxFreq = 0;
+//   for (let i = 0; i < N; i++) {
+//     const amp = Math.sqrt(signal[i].y * signal[i].y + signal[i].x * signal[i].x);
+//     if (amp > maxAmp) {
+//       maxAmp = amp;
+//       maxFreq = i * df;
+//     }
+//   }
+//   return maxFreq;
+// }
 
 
 function sinc(x) {
@@ -291,7 +370,7 @@ function reconstructSignal(sampledData, numPoints) {
 
     reconstructedData.x.push(t);
     reconstructedData.y.push(sum);
-    
+
   }
 
   return reconstructedData;
