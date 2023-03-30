@@ -33,7 +33,7 @@ function createPlot(graphElement) {
         zoom: false,
       },
       //range: [0, 5],
-      title: "Frequency (Hz)",
+      title: "Time (sec)",
       zoom: 1000,
     },
     yaxis: {
