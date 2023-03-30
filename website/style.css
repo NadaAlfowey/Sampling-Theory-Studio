@@ -1,7 +1,7 @@
 .text-divider {
     display: flex;
     align-items: center;
-    --text-divider-gap: 1rem; // set a customizable gap between label and lines
+    --text-divider-gap: 1rem; 
 }
 
 .text-divider::before,
@@ -18,4 +18,11 @@
 
 .text-divider::after {
     margin-left: var(--text-divider-gap);
+}
+
+@media screen and (max-width: 768px) {
+    .row {
+        display:inline-block;
+    width:49%;
+    }
 }

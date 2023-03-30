@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <div class="d-flex flex-row">
+    <div class="d-flex flex-row flex-wrap">
         <div class="w-25 bg-secondary bg-gradient bg-opacity-10 ">
             <div class="my-3 px-3">
                 <label for="formFile" class="form-label h4">Upload Signal</label>
@@ -104,11 +104,11 @@
         <div class="p-4 w-75">
             <h1 class="">Sampling Theory Studio</h1>
             <div class="d-flex flex-column">
-                <div class="d-flex flex-row flex-wrap">
+                <div class="row">
                     <div id="signal" class="w-50"></div>
                     <div id="reconstructed" class="w-50"></div>
                 </div>
-                <div id="difference" class="w-100"></div>
+                <div id="difference" class="d-flex flex-wrap w-100"></div>
             </div>
         </div>
     </div>
