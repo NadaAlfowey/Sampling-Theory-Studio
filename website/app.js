@@ -325,7 +325,7 @@ function reconstructSignal(sampledData, numPoints) {
   }
 
   // Add the new reconstructed signal trace to the plot with the updated sampling frequency
-  Plotly.addTraces(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y, type: 'scatter', name: 'Reconstructed Signal' });
+  Plotly.addTraces(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y });
   Plotly.addTraces(differenceGraph, { x: signalGraph.data[0].x, y: signalGraph.data[0].y });
   Plotly.addTraces(differenceGraph, { x: reconstructedGraph.data[0].x, y: reconstructedGraph.data[0].y });
 
