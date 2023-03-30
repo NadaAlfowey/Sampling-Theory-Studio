@@ -23,6 +23,12 @@
 @media screen and (max-width: 768px) {
     .row {
         display:inline-block;
-    width:49%;
+    width:200%;
+    }
+    #signal {
+        width:100%;
+    }
+    #reconstructed {
+        width:100%;
     }
 }
