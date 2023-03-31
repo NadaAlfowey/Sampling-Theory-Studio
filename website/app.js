@@ -1,3 +1,8 @@
+
+let normalizedValueSlider = document.getElementById("normalizedValue");
+let normalizedValueDisplay = document.getElementById("normalizedValueDisplay");
+let freqValueSlider = document.getElementById("freqValue");
+let freqValueDisplay = document.getElementById("freqValueDisplay");
 let signalGraph = document.getElementById("signal");
 let reconstructedGraph = document.getElementById("reconstructed");
 let differenceGraph = document.getElementById("difference");
@@ -46,7 +51,11 @@ function createPlot(graphElement) {
     autosize: true,
   });
 }
-
+normalizedValueSlider.addEventListener("input", () => {
+  updateSamplingRateNormalized();
+  // updateSamplingRateActual();
+  // updateGraphs(); // Pass the numPoints variable as an argument
+});
 SNRrange.addEventListener("change", () => {
   SNRvalue.innerHTML = SNRrange.value;
   // calculate the power of signal (amplitude)
@@ -119,7 +128,7 @@ uploadFile.addEventListener("change", (event) => {
 signalComposerButton.addEventListener("click", () => {
   composeCosineSignal();
 });
-
+let maxComposedFrequency = 0;
 function composeCosineSignal() {
   let frequency = composerFrequency.value; // frequency in Hz
   let amplitude = composerAmplitude.value; // peak amplitude
@@ -132,11 +141,14 @@ function composeCosineSignal() {
   }
   if (signals.length == 0) {
     signals.push(wave);
+    getMaxFrequency(signals);
   } else {
     NumComposedSignals++;
     updateSignalComponentsList(frequency, amplitude);
   }
   addSignals(wave);
+  maxComposedFrequency = Math.max(maxComposedFrequency, parseFloat(frequency));
+  console.log('Fmax', maxComposedFrequency, 'Hz');
 }
 
 function addSignals(newSignal) {
@@ -389,34 +401,161 @@ removeSignalComponentButton.addEventListener("click", () => {
 // }
 
 function updateGraphs() {
-  const signalData = signalGraph.data[0];
-  // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
-  const reconstructSignal = reconstructSignal(
-    sampledSignal,
-    signalData.x.length
-  );
-  const differenceSignal = calculateDifference(signalData, reconstructedSignal);
+  console.log('Updating graphs...');
 
-  Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
-  Plotly.update(
-    reconstructedGraph,
-    { x: reconstructedSignal.x, y: reconstructedSignal.y },
-    {},
-    [0]
-  );
-  Plotly.update(
-    differenceGraph,
-    { x: differenceSignal.x, y: differenceSignal.y },
-    {},
-    [0]
-  );
+  if (signalGraph.data.length === 0) {
+    return; // If there is no data in the signalGraph, exit the function
+  }
+  const signalData = signalGraph.data[0];
+  console.log('Signal data:', signalData);
+  const numPoints = signalData.x.length;
+  console.log('Number of points:', numPoints);
+  console.log('Signal data:', signalData);
+  console.log('Number of points:', numPoints);
+  // Remove the direct call to sampleData
+  // const sampledSignal = sampleData(samplingFrequency.value);
+
+  // Check if sampledData is not empty
+  if (signalData && sampledData.length > 0) {
+    const reconstructedSignal = reconstructSignal(sampledData, signalData.length);
+
+    Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
+    Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
+    Plotly.update(differenceGraph, [{ x: signalGraph.data[0].x, y: signalGraph.data[0].y },{x:reconstructedGraph.data[0].x, y:reconstructedGraph.data[0].y}], {}, [0,1]);
+  }
 }
+// Update the graphs whenever a new signal is added, removed, or modified
+signalComposerButton.addEventListener("click", updateGraphs);
+removeSignalComponentButton.addEventListener("click", updateGraphs);
+samplingFrequency.addEventListener("change", updateGraphs);
 
 // Update the signal components list whenever a new signal is added or removed
 //signalComposerButton.addEventListener("click", updateSignalComponentsList);
 //removeSignalComponentButton.addEventListener("click", updateSignalComponentsList);
 
-// Update the graphs whenever a new signal is added, removed, or modified
-signalComposerButton.addEventListener("click", updateGraphs);
-removeSignalComponentButton.addEventListener("click", updateGraphs);
-samplingFrequency.addEventListener("change", updateGraphs);
+
+// freqValueSlider.addEventListener("input", () => {
+  //   updateSamplingRateNormalized();
+  //   updateSamplingRateActual();
+  //   updateGraphs(); // Pass the numPoints variable as an argument
+  // });
+  // Get the new slider input elements and the span elements to display the values
+  
+  
+  // Function to update the sampling rate based on the actual frequency slider value
+  // function updateSamplingRateActual() {
+    //   const sliderValue = parseFloat(freqValueSlider.value);
+
+//   // Update the sampling rate input element and the displayed value
+//   samplingRInput.value = sliderValue.toFixed(2);
+//   freqValueDisplay.textContent = sliderValue.toFixed(2);
+
+//   // Trigger the change event for the sampling rate input element
+//   samplingRInput.dispatchEvent(new Event("change"));
+// }
+
+//Add event listeners for the new slider inputs
+// normalizedValueSlider.addEventListener("input", updateSamplingRateNormalized);
+// freqValueSlider.addEventListener("input", updateSamplingRateActual);
+
+// function getFmax(sampleRate)
+// {
+//   const signal=signalGraph.data[0].y;
+//   const signalLength = signalGraph.data[0].y.length;
+//   const nyquistFrequency = sampleRate / 2;
+//   const fft = new p5.FFT();
+//   const spectrum = fft.analyze(signal);  
+//   const maxBin = spectrum.indexOf(Math.max(...spectrum.slice(0, signalLength / 2)));
+//   const maxFrequency = Math.abs(maxBin * nyquistFrequency / (signalLength / 2));
+  
+// console.log("fmax is here");
+// console.log(signalLength);
+// console.log(signal);
+// console.log(maxFrequency);
+// console.log("fmax done");
+// return maxFrequency;
+// }
+// function getMaxFrequency(signal) {
+//   const N = signal.length;
+//   const Fs = N / signal[N-1].x; // sampling frequency
+//   const df = Fs / N; // frequency resolution
+//   let maxAmp = 0;
+//   let maxFreq = 0;
+//   for (let i = 0; i < N; i++) {
+//     const amp = Math.sqrt(signal[i].y * signal[i].y + signal[i].x * signal[i].x);
+//     if (amp > maxAmp) {
+//       maxAmp = amp;
+//       maxFreq = i * df;
+//     }
+//   }
+//   // console.log('Fmax', maxFreq, 'Hz');
+//   // return maxFreq;
+// }
+function getMaxFrequency(data) {
+  // Calculate the time step between samples
+  const dt = data.x[1] - data.x[0];
+
+  // Determine the units of the x values
+  const units = data.xUnits || '';
+
+  // Convert the time step to seconds if necessary
+  if (units === 'ms') {
+    dt /= 1000;
+  } else if (units === 'us') {
+    dt /= 1000000;
+  }
+
+  // Calculate the sampling frequency
+  const samplingFrequency = 1 / dt;
+
+  // Calculate the Nyquist frequency
+  const nyquistFrequency = samplingFrequency / 2;
+
+  // Calculate the maximum frequency
+  const maxFrequency = nyquistFrequency;
+  return maxFrequency;
+}
+
+
+
+// Function to update the sampling rate based on the normalized slider value
+function updateSamplingRateNormalized() {
+console.log("Slider normalized value changed!");
+const sliderValue = parseFloat(normalizedValueSlider.value);
+const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+const newSamplingRate = sliderValue * maxFrequency;
+
+// Update the sampling rate input element and the displayed value
+samplingRInput.value = newSamplingRate.toFixed(2).toString();
+normalizedValueDisplay.textContent = sliderValue.toFixed(2);
+
+// Trigger the change event for the sampling rate input element
+samplingRInput.dispatchEvent(new Event("change"));
+}
+
+function updateSamplingRateActual() {
+// Define the maximum frequency range
+const maxFrequencyRange = [0, 4 * getMaxFrequency(signalGraph.data[0])];
+
+// Set the initial value of the slider to the midpoint of the range
+freqValueSlider.value = (maxFrequencyRange[0] + maxFrequencyRange[1]) / 2;
+
+// Set the minimum and maximum values of the slider
+freqValueSlider.min = maxFrequencyRange[0];
+freqValueSlider.max = maxFrequencyRange[1];
+
+// Add an event listener to the slider to update the sampling frequency input
+freqValueSlider.addEventListener('input', () => {
+  // Retrieve the current value of the slider
+  const currentMaxFrequency = freqValueSlider.value;
+
+  // Calculate the new sampling frequency based on the current maximum frequency
+  const newSamplingFrequency = currentMaxFrequency * 2;
+
+  // Update the sampling frequency input with the new value
+  samplingFrequency.value = newSamplingFrequency;
+
+  // Update the graphs with the new sampling frequency
+  updateGraphs();
+});
+}
