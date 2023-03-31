@@ -206,24 +206,45 @@ function sinc(x) {
   return Math.sin(piX) / piX;
 }
 
-function reconstructSignal(sampledData, numPoints) {
+// function reconstructSignal(signalData, numPoints) {
+//   const x = signalData.map(obj=>obj.x);
+//   const y = signalData.map((obj) => obj.y);
+//   const T = (x[x.length - 1] - x[0]) / (x.length - 1);
+//   const omega = (2 * Math.PI) / T;
+//   const N = x.length;
+//   const M = numPoints;
+//   const interpolatedSignal = { x: [], y: [] };
+//   for (let i = 0; i < M; i++) {
+//     const t = (i * T) / (M - 1);
+//     let sum = 0;
+//     for (let j = 0; j < N; j++) {
+//       sum += (y[j] * Math.sin(omega * (t - x[j]))) / (omega * (t - x[j]));
+//     }
+//     interpolatedSignal.x.push(t);
+//     interpolatedSignal.y.push(sum);
+//   }
+//   return interpolatedSignal;
+// }
+
+function reconstructSignal(sampledData) {
+  //-------------------------------------using frontend-----------------------------
   // Initialize an object to store the reconstructed data
   const reconstructedData = { x: [], y: [] };
   // Calculate the time interval (T) between consecutive sampled data points
   const T = sampledData[1].x - sampledData[0].x;
+  // console.log(T);
   // Loop through the number of points to reconstruct the signal
-  for (let i = 0; i < numPoints; i++) {
-    // Calculate the time (t) for the current point
-    const t = i * T;
+  for (let i = 0; i < signalGraph.data[0].x.length; i++) {
+    // time (t) for the current point
     // Initialize a variable to store the sum of sinc function values
     let sum = 0;
     // Loop through the sampled data points
     for (let n = 0; n < sampledData.length; n++) {
       // Calculate the sinc function value for the current point and add it to the sum
-      sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
+      sum +=sampledData[n].y *sinc((signalGraph.data[0].x[i] - sampledData[n].x) / T);
     }
     // Add the time (t) and the sum of sinc function values to the reconstructed data
-    reconstructedData.x.push(t);
+    reconstructedData.x = signalGraph.data[0].x;
     reconstructedData.y.push(sum);
   }
   // Add the new reconstructed signal trace to the plot with the updated sampling frequency
@@ -234,6 +255,32 @@ function reconstructSignal(sampledData, numPoints) {
   }
   // Return the reconstructed data
   return reconstructedData;
+  //--------------------------------using flask-------------------------
+  // let reconstructedData = {};
+  // fetch("/interpolate", {
+  //   method: "POST",
+  //   credentials: "same-origin",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify({ sampled_data: sampledData }),
+  // })
+  //   .then((response) => {
+  //     return response.json();
+  //   })
+  //   .then((data) => {
+  //     reconstructedData["x"] = data.interpolated_data.map((obj) => obj.x);
+  //     reconstructedData["y"] = data.interpolated_data.map((obj) => obj.y);
+  //     if(reconstructedGraph.data.length==0){
+  //       Plotly.addTraces(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y });
+  //       Plotly.addTraces(differenceGraph, { x: signalGraph.data[0].x, y: signalGraph.data[0].y });
+  //       Plotly.addTraces(differenceGraph, { x: reconstructedGraph.data[0].x, y: reconstructedGraph.data[0].y });
+  //     }
+  //     return reconstructedData;
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //   });
 }
 
 SNRrange.addEventListener("change", () => {
@@ -308,8 +355,7 @@ samplingRInput.addEventListener("change", function() {
     //return;
   }
   sampleData(userSampRate);
-  const reconstructedData = reconstructSignal(sampledData, sampledData.length);
-  console.log('Reconstructed Data:', reconstructedData);
+  const reconstructedData = reconstructSignal(sampledData);
 
   if (reconstructedGraph.data.length != 0) {
     updateReconstruction();
@@ -342,7 +388,8 @@ function updateSignal(){
 function updateReconstruction(){
 if(reconstructedGraph.data.length!=0){
 sampleData(userSampRate);
-const reconstructedSignal = reconstructSignal(sampledData, sampledData.length);
+const reconstructedSignal = reconstructSignal(sampledData);
+console.log(reconstructedSignal);
 Plotly.update(reconstructedGraph, { x: [reconstructedSignal.x], y: [reconstructedSignal.y] }, {}, 0);
 updateDifferenceTwo();
 }
