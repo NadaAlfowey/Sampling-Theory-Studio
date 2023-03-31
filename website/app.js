@@ -1,3 +1,9 @@
+
+let normalizedValueSlider = document.getElementById("normalizedValue");
+let normalizedValueDisplay = document.getElementById("normalizedValueDisplay");
+let freqValueSlider = document.getElementById("freqValue");
+let freqValueDisplay = document.getElementById("freqValueDisplay");
+
 let signalGraph = document.getElementById("signal");
 let reconstructedGraph = document.getElementById("reconstructed");
 let differenceGraph = document.getElementById("difference");
