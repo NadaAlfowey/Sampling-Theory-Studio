@@ -274,7 +274,6 @@ samplingRInput.addEventListener("change", function () {
   userSampRate = parseInt(this.value);
   sampleData(userSampRate);
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
-  console.log("Reconstructed Data:", reconstructedData);
 
   if (reconstructedGraph.data.length != 0) {
     updateSignal();
@@ -346,7 +345,6 @@ function sampleData(samplingRate) {
     // increment the time variable by the sample interval
     timeValue += sampleInterval;
   }
-  console.log(sampledData);
   //isFirst is set to false to indicate that this is not the first time sampleData is being called
   isFirst = false;
   // add a new trace to the plot
@@ -383,15 +381,6 @@ function binarySearch(arr, x) {
   return end;
 }
 
-// function getMaxFrequency(signal) {
-//   const lastSignal = signal[signal.length - 1]; // get the last signal in the array
-//   const duration = lastSignal.x[lastSignal.x.length - 1]; // duration of signal by getting the last value of the x array of the last signal in the array
-//   const numSamples = lastSignal.x.length; //This line calculates the number of samples in the signal by getting the length of the x array of the last signal in the array
-//   const period = duration / (numSamples - 1); // calculates the period of the signal by dividing the duration by the number of samples minus one
-//   const maxFrequency = 1 / (2 * period); //calculates the Nyquist frequency, which is half the sampling rate, by dividing 1 by twice the period
-//   return maxFrequency;
-// }
-
 function sinc(x) {
   if (x === 0) return 1;
   const piX = Math.PI * x;
@@ -399,8 +388,6 @@ function sinc(x) {
 }
 
 function reconstructSignal(sampledData, numPoints) {
-  console.log("Sampled Data:", sampledData);
-  console.log("Num Points:", numPoints);
 
   const reconstructedData = { x: [], y: [] };
   const T = sampledData[1].x - sampledData[0].x;
@@ -617,7 +604,7 @@ function saveSignalData() {
   // Get the signal data
   const signalData = signalGraph.data[0];
   // Create a CSV string from the signal data
-  let csvString = "x,y\n";
+  let csvString = "";
   for (let i = 0; i < signalData.x.length; i++) {
     csvString += signalData.x[i] + "," + signalData.y[i] + "\n";
   }
