@@ -18,6 +18,9 @@ let sampledData = []; // create an empty array to store the sampled data
 let signals = [];
 let NumComposedSignals = 0;
 let userSampRate;
+let maxComposedFrequency=0;
+let isComposed=false;
+let isUploaded=false;
 
 document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
@@ -47,6 +50,14 @@ function createPlot(graphElement) {
     autosize: true,
   });
 }
+
+normalizedValueSlider.addEventListener("input", () => {
+  updateSamplingRateNormalized();
+});
+
+freqValueSlider.addEventListener('input', () => {
+  updateSamplingRateActual();
+});
 
 SNRrange.addEventListener("change", () => {
   SNRvalue.innerHTML = SNRrange.value;
@@ -101,6 +112,7 @@ SNRrange.addEventListener("change", () => {
 });
 
 uploadFile.addEventListener("change", (event) => {
+  isUploaded=true;
   const file = event.target.files[0];
   const reader = new FileReader();
   reader.readAsText(file);
@@ -140,6 +152,9 @@ function composeCosineSignal() {
     updateSignalComponentsList(frequency, amplitude);
   }
   addSignals(wave);
+  isComposed=true;
+  maxComposedFrequency = Math.max(maxComposedFrequency, parseFloat(frequency));
+  console.log('Fmax', maxComposedFrequency, 'Hz');
 }
 
 function addSignals(newSignal) {
@@ -406,4 +421,81 @@ function updateDifferenceTwo() {
       {},
       1
     );
+}
+
+function getMaxFrequency(data) {
+  if(isComposed==true && isUploaded==false)
+  {
+    const maxFrequency = maxComposedFrequency;
+    console.log("lol",maxFrequency);
+    return maxFrequency;
+  }
+  else{
+  
+  // Calculate the time step between samples
+  const dt = data.x[1] - data.x[0];
+
+  // Determine the units of the x values
+  const units = data.xUnits || '';
+
+  // Convert the time step to seconds if necessary
+  if (units === 'ms') {
+    dt /= 1000;
+  } else if (units === 'us') {
+    dt /= 1000000;
+  }
+
+  // Calculate the sampling frequency
+  const samplingFrequency = 1 / dt;
+
+  // Calculate the Nyquist frequency
+  const nyquistFrequency = samplingFrequency / 2;
+
+  // Calculate the maximum frequency
+  const maxFrequency = nyquistFrequency;
+  console.log("lol",maxFrequency);
+  return maxFrequency;
+}
+}
+// Function to update the sampling rate based on the normalized slider value
+function updateSamplingRateNormalized() {
+console.log("Slider normalized value changed!");
+const sliderValue = parseFloat(normalizedValueSlider.value);
+const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+const newSamplingRate = sliderValue * maxFrequency;
+
+// Update the sampling rate input element and the displayed value
+samplingRInput.value = newSamplingRate.toFixed(2).toString();
+normalizedValueDisplay.textContent = sliderValue.toFixed(2);
+
+// Trigger the change event for the sampling rate input element
+samplingRInput.dispatchEvent(new Event("change"));
+// updateReconstruction();
+}
+
+function updateSamplingRateActual() {
+  // Retrieve the current value of the slider
+  const sliderValue = parseFloat(freqValueSlider.value);
+// Define the maximum frequency range
+const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+const maxFrequencyRange = [0, 4 * maxFrequency];
+
+// Set the minimum and maximum values of the slider
+freqValueSlider.min = maxFrequencyRange[0];
+freqValueSlider.max = maxFrequencyRange[1];
+
+ // Calculate the new sampling frequency based on the current maximum frequency
+ const newSamplingRate = sliderValue;
+
+  // Update the sampling frequency input with the new value
+  samplingRInput.value = newSamplingRate.toFixed(2).toString();
+
+  freqValueDisplay.textContent = sliderValue.toFixed(2);
+
+// Trigger the change event for the sampling rate input element
+samplingRInput.dispatchEvent(new Event("change"));
+
+  // Update the graphs with the new sampling frequency
+  // updateReconstruction();
+
 }
