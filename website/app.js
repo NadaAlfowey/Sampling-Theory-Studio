@@ -40,16 +40,16 @@ function createPlot(graphElement) {
     // Define the x-axis options
     xaxis: {
       // Enable the range slider for the x-axis
-      rangeslider: {
-        // Set the initial range of the slider to [0, 1]
-        range: [0, 1],
-        // Make the range slider visible
-        visible: true,
-        // Disable dragging of the range slider
-        dragmode: false,
-        // Disable zooming with the range slider
-        zoom: false,
-      },
+      // rangeslider: {
+      //   // Set the initial range of the slider to [0, 1]
+      //   range: [0, 1],
+      //   // Make the range slider visible
+      //   visible: true,
+      //   // Disable dragging of the range slider
+      //   dragmode: false,
+      //   // Disable zooming with the range slider
+      //   zoom: false,
+      // },
       // Set the title for the x-axis
       title: "Time (sec)",
       // Enable zooming for the x-axis with a max zoom level of 1000x
@@ -69,6 +69,7 @@ function createPlot(graphElement) {
     responsive: true,
     // Enable automatic resizing of the plot to fit its container element
     autosize: true,
+    
   });
 }
 
@@ -281,6 +282,10 @@ samplingRInput.addEventListener("change", function () {
     Plotly.addTraces(reconstructedGraph, {
       x: reconstructedData.x,
       y: reconstructedData.y,
+      mode: "lines",
+      name: "spline",
+      line: { shape: "spline" },
+      type: "scatter",
     });
     Plotly.addTraces(differenceGraph, {
       x: signalGraph.data[0].x,
@@ -289,6 +294,10 @@ samplingRInput.addEventListener("change", function () {
     Plotly.addTraces(differenceGraph, {
       x: reconstructedGraph.data[0].x,
       y: reconstructedGraph.data[0].y,
+      mode: "lines",
+      name: "spline",
+      line: { shape: "spline" },
+      type: "scatter",
     });
   }
 });
@@ -301,7 +310,7 @@ function sampleData(samplingRate) {
     Plotly.deleteTraces(signalGraph, -1);
     sampledData = [];
   }
-  for (let duration = 0; duration < 1000; duration++) {
+  for (let duration = 0; duration <= 1000; duration++) {
     totalDuration = duration / 1000;
   }
   //gets the last uploaded signal from the signals array
@@ -395,8 +404,8 @@ function reconstructSignal(sampledData, numPoints) {
   const reconstructedData = { x: [], y: [] };
   const T = sampledData[1].x - sampledData[0].x;
 
-  for (let i = 0; i < numPoints; i++) {
-    const t = i * T;
+  for (let i = 0; i < signals[0].x.length; i++) {
+    const t = signals[0].x[i];
     let sum = 0;
 
     for (let n = 0; n < sampledData.length; n++) {
@@ -479,9 +488,17 @@ function updateReconstruction() {
       sampledData,
       sampledData.length
     );
-    Plotly.update( // update the reconstructedGraph with the new reconstructed signal
+    Plotly.update(
+      // update the reconstructedGraph with the new reconstructed signal
       reconstructedGraph,
-      { x: [reconstructedSignal.x], y: [reconstructedSignal.y] , type: 'scatter', mode: 'lines', line: { smoothing: 0.5, interpolation: 'spline', width: 2 }},
+      {
+        x: [reconstructedSignal.x],
+        y: [reconstructedSignal.y],
+        mode: "lines",
+        name: "Reconstructed + Sampled",
+        //line: { shape: "spline" },
+        type: "scatter",
+      },
       {},
       0
     );
