@@ -301,7 +301,7 @@ function sampleData(samplingRate) {
     Plotly.deleteTraces(signalGraph, -1);
     sampledData = [];
   }
-  for (let duration = 0; duration < 1000; duration++) {
+  for (let duration = 0; duration <= 1000; duration++) {
     totalDuration = duration / 1000;
   }
   //gets the last uploaded signal from the signals array
@@ -314,11 +314,11 @@ function sampleData(samplingRate) {
   const sampleInterval = duration / numSamples;
   let timeValue = 0;
   //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
-  for (let sampleCounter = 0; sampleCounter < numSamples; sampleCounter++) {
+  for (let sampleCounter = 0; sampleCounter <= numSamples; sampleCounter++) {
     const x = timeValue;
     //initializes the y-value of the sampled data point to NaN, indicating that it is currently unknown
     let y = NaN;
-    //binary search function will iterate through each data point in the original signal to find the y-value of the current sampled data point
+    //binary search function will iterate through each data point in the original signal to find the nearest x-value of the current sampled data point
     //j is set to the index of the nearest value to x in data.x array, using the binarySearch function
     let nearestIndex = binarySearch(data.x, x);
     //If j is within range of the data.x array, then y is calculated using linear interpolation between y values corresponding to x1 and x2 values
@@ -337,6 +337,7 @@ function sampleData(samplingRate) {
     // increment the time variable by the sample interval
     timeValue += sampleInterval;
   }
+  console.log(sampledData);
   //isFirst is set to false to indicate that this is not the first time sampleData is being called
   isFirst = false;
   // add a new trace to the plot
