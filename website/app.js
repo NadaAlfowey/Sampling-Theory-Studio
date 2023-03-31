@@ -405,6 +405,8 @@ function reconstructSignal(sampledData, numPoints) {
   const reconstructedData = { x: [], y: [] };
   const T = sampledData[1].x - sampledData[0].x;
 
+  // for (let i = 0; i < numPoints; i++) {
+  //   const t = i * T;
   for (let i = 0; i < signals[0].x.length; i++) {
     const t = signals[0].x[i];
     let sum = 0;
