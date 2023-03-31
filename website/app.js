@@ -20,47 +20,64 @@ let removeSignalComponentButton = document.getElementById("removecomponent");
 let samplingRInput = document.getElementById("sampling-rate-input");
 
 let isFirst = true;
-let sampledData = []; // create an empty array to store the sampled data
+let sampledData = [];
 let signals = [];
 let NumComposedSignals = 0;
 let userSampRate;
-let maxComposedFrequency=0;
-let isComposed=false;
-let isUploaded=false;
+let maxComposedFrequency = 0;
+let isComposed = false;
+let isUploaded = false;
 
 document.onload = createPlot(signalGraph);
 document.onload = createPlot(reconstructedGraph);
 document.onload = createPlot(differenceGraph);
 
 function createPlot(graphElement) {
+  // Define the layout options for the plot
   let layout = {
+    // Define the plot title and a placeholder to edit it
     title: { title: "Click Here<br>to Edit Chart Title" },
+    // Define the x-axis options
     xaxis: {
+      // Enable the range slider for the x-axis
       rangeslider: {
+        // Set the initial range of the slider to [0, 1]
         range: [0, 1],
+        // Make the range slider visible
         visible: true,
+        // Disable dragging of the range slider
         dragmode: false,
+        // Disable zooming with the range slider
         zoom: false,
       },
-      //range: [0, 5],
+      // Set the title for the x-axis
       title: "Time (sec)",
+      // Enable zooming for the x-axis with a max zoom level of 1000x
       zoom: 1000,
     },
+    // Define the y-axis options
     yaxis: {
+      // Set the title for the y-axis
       title: "Amplitude",
     },
   };
+  // Create a new empty plot with the given layout options
   Plotly.newPlot(graphElement, [], layout, {
+    // Disable the display of the plotly logo
     displaylogo: false,
+    // Enable responsive sizing of the plot
     responsive: true,
+    // Enable automatic resizing of the plot to fit its container element
     autosize: true,
   });
 }
 
+// Add an event listener to the normalized value slider to update the sampling frequency
 normalizedValueSlider.addEventListener("input", () => {
   updateSamplingRateNormalized();
 });
 
+// Add an event listener to the actual value slider to update the sampling frequency input 
 freqValueSlider.addEventListener('input', () => {
   updateSamplingRateActual();
 });
@@ -117,67 +134,87 @@ SNRrange.addEventListener("change", () => {
   updateDifferenceOne();
 });
 
+// Add an event listener to the file upload input element to trigger when a file is selected
 uploadFile.addEventListener("change", (event) => {
-  isUploaded=true;
+  // Set the isUploaded flag to true when a file is selected
+  isUploaded = true;
+  // Retrieve the file object from the event target
   const file = event.target.files[0];
+  // Create a new file reader instance
   const reader = new FileReader();
+  // Read the file as text
   reader.readAsText(file);
   let data;
+  // Trigger this function when the file is loaded
   reader.onload = () => {
-    // Parse the CSV data into an array of objects
-    data = reader.result
-      .trim()
-      .split("\n")
-      .map((row) => {
-        const [col1, col2] = row.split(",");
-        return { col1: parseFloat(col1), col2: parseFloat(col2) };
-      });
-    convertCsvToTrace(data);
+  // Parse the CSV data into an array of objects
+  data = reader.result
+  .trim()
+  .split("\n")
+  .map((row) => {
+  // Split each row by comma and convert the values to numbers
+  const [col1, col2] = row.split(",");
+  return { col1: parseFloat(col1), col2: parseFloat(col2) };
+  });
+  // Convert the CSV data to a trace and update the graph
+  convertCsvToTrace(data);
   };
-});
+  });
 
+// Add event listener to the signalComposerButton element that listens for a 'click' event
 signalComposerButton.addEventListener("click", () => {
+  // Call the composeCosineSignal() function to generate a new cosine signal with user-defined parameters
   composeCosineSignal();
+  // Call the updateSignal() function to update the signal graph with the new data
   updateSignal();
 });
 
+// This function composes a cosine signal using the frequency and amplitude values from the composer form
 function composeCosineSignal() {
-  let frequency = composerFrequency.value; // frequency in Hz
-  let amplitude = composerAmplitude.value; // peak amplitude
-  let wave = { x: [], y: [] }; //, signalType: "composed", frequency: frequency , amplitude: amplitude
-  for (let i = 0; i < 1000; i++) {
-    let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
-    var value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
-    wave.x.push(t);
-    wave.y.push(value);
+  let frequency = composerFrequency.value; // get the frequency value in Hz from the composer form
+  let amplitude = composerAmplitude.value; // get the peak amplitude value from the composer form
+  let wave = { x: [], y: [] }; // initialize an empty wave object to hold the x and y data points
+  // iterate over 1000 time durations to generate the signal
+  for (let duration = 0; duration < 1000; duration++) {
+  let timeValue = duration / 1000; // calculate the time value for the current duration
+  var value = amplitude * Math.cos(2 * Math.PI * frequency * timeValue); // calculate the sample value using the time and frequency values
+  wave.x.push(timeValue); // add the current time value to the x data array
+  wave.y.push(value); // add the current sample value to the y data array
   }
+  // check if any signals have been added before
   if (signals.length == 0) {
-    signals.push(wave);
+  signals.push(wave); // add the wave object to the signals array
   } else {
-    NumComposedSignals++;
-    updateSignalComponentsList(frequency, amplitude);
+  NumComposedSignals++; // increase the count of the number of composed signals
+  updateSignalComponentsList(frequency, amplitude); // update the list of signal components on the page
   }
-  addSignals(wave);
-  isComposed=true;
-  maxComposedFrequency = Math.max(maxComposedFrequency, parseFloat(frequency));
-  console.log('Fmax', maxComposedFrequency, 'Hz');
-}
+  addSignals(wave); // add the wave object to the plot
+  isComposed = true; // set the isComposed flag to true to indicate a composed signal is being displayed
+  maxComposedFrequency = Math.max(maxComposedFrequency, parseFloat(frequency)); // update the maximum frequency of the composed signals
+  }
 
 function addSignals(newSignal) {
+  // Check if there are existing signals on the graph
   if (signalGraph.data.length != 0) {
-    for (let amp = 0; amp < newSignal.y.length; amp++) {
-      newSignal.y[amp] = signalGraph.data[0].y[amp] + newSignal.y[amp];
+    // If there are existing signals, add the new signal to them
+    for (let amplitude = 0; amplitude < newSignal.y.length; amplitude++) {
+      newSignal.y[amplitude] = signalGraph.data[0].y[amplitude] + newSignal.y[amplitude];
     }
+    // Update the signal graph with the new signal data
     Plotly.update(signalGraph, { y: [newSignal.y], x: [newSignal.x] }, {}, 0);
+    // If there are signals in the signals array, replace the last one with the new signal
     if (signals.length != 0) {
       signals.pop();
       signals.push(newSignal);
     }
-  } else 
-  Plotly.addTraces(signalGraph, newSignal);
+  } else {
+    // If there are no existing signals on the graph, add the new signal as a new trace
+    Plotly.addTraces(signalGraph, newSignal);
+  }
 }
 
 function removeComponent(optionText) {
+  // Extract frequency and amplitude from the selected option's text
   const match = optionText.match(
     /Frequency:\s*(\d+)\s*Hz,\s*Amplitude:\s*(\d+)/
   );
@@ -186,38 +223,49 @@ function removeComponent(optionText) {
     frequency = parseInt(match[1]);
     amplitude = parseInt(match[2]);
   }
+  // Create a cosine signal with the extracted frequency and amplitude
   let cosSignal = [];
-  for (let i = 0; i < 1000; i++) {
-    let t = i / 1000; // time x-axis =i/ numofsamples where i is the duration
-    let value = amplitude * Math.cos(2 * Math.PI * frequency * t); //sample value y axis
+  for (let duration = 0; duration < 1000; duration++) {
+    let timeValue = duration / 1000; // Calculate time value for x-axis
+    let value = amplitude * Math.cos(2 * Math.PI * frequency * timeValue); // Calculate sample value for y-axis
     cosSignal.push(value);
   }
+  // Subtract the cosine signal from the existing signal
   let signalRemovedComponent = [];
-  for (let amp = 0; amp < 1000; amp++) {
-    signalRemovedComponent.push(signalGraph.data[0].y[amp] - cosSignal[amp]);
-    signals[0].y[amp] = signals[0].y[amp] - cosSignal[amp];
+  for (let amplitude = 0; amplitude < 1000; amplitude++) {
+    signalRemovedComponent.push(signalGraph.data[0].y[amplitude] - cosSignal[amplitude]); // Subtract the cosine signal value from the original signal value
+    signals[0].y[amplitude] = signals[0].y[amplitude] - cosSignal[amplitude]; // Update the signal's data
   }
+  // Update the plot with the new signal data
   Plotly.update(signalGraph, { y: [signalRemovedComponent] }, {}, 0);
 }
 
+
+// This function updates the signal components list with the new composed signal.
 function updateSignalComponentsList(frequency, amplitude) {
+  // Create a new option element
   const option = document.createElement("option");
+  // Set the option text to display the frequency and amplitude of the new composed signal
   option.text = `Signal ${NumComposedSignals}: cos (Frequency: ${frequency} Hz, Amplitude: ${amplitude})`;
+  // Set the option to be selected by default
   option.selected = true;
+  // Add the new option to the signal component select element
   signalComponentSelect.add(option);
 }
 
+
 function convertCsvToTrace(csvdata) {
-  let uploadedSignal = {};
-  let x = csvdata.map((arrRow) => arrRow.col1).slice(0, 1000);
-  let y = csvdata.map((arrRow) => arrRow.col2).slice(0, 1000);
-  uploadedSignal["x"] = x;
-  uploadedSignal["y"] = y;
-  //signals.push(uploadedSignal);
-  if (signals.length == 0) {
+  let uploadedSignal = {}; // Create an empty object to hold the uploaded signal data
+  let x = csvdata.map((arrRow) => arrRow.col1).slice(0, 1000); // Extract the x-values from the CSV data
+  let y = csvdata.map((arrRow) => arrRow.col2).slice(0, 1000); // Extract the y-values from the CSV data
+  uploadedSignal["x"] = x; // Assign the x-values to the "x" property of the uploadedSignal object
+  uploadedSignal["y"] = y; // Assign the y-values to the "y" property of the uploadedSignal object
+  if (signals.length == 0) { // If there are no existing signals, add the uploaded signal as a trace to the plot
     signals.push(uploadedSignal);
     Plotly.addTraces(signalGraph, uploadedSignal);
-  } else addSignals(uploadedSignal);
+  } else { // If there are existing signals, add the uploaded signal as a component to the plot
+    addSignals(uploadedSignal);
+  }
 }
 
 // Get the sampling rate from the input field and pass it to the sampleData function
@@ -247,38 +295,38 @@ samplingRInput.addEventListener("change", function () {
 
 function sampleData(samplingRate) {
   let numSamples = 0;
-  let time = 0;
+  let totalDuration = 0;
   //checks if it's not the first time the function is being called, and if so, deletes the last trace from the plot and clears the sampledData array
   if (!isFirst) {
     Plotly.deleteTraces(signalGraph, -1);
     sampledData = [];
   }
-  for (let i = 0; i < 1000; i++) {
-    time = i / 1000; 
+  for (let duration = 0; duration < 1000; duration++) {
+    totalDuration = duration / 1000;
   }
   //gets the last uploaded signal from the signals array
   const data = signals[signals.length - 1];
   //gets the duration of the signal, which is the last value in the x array
   const duration = data.x[data.x.length - 1];
-  //calculates the number of samples to take by multiplying the time by the samplingRate
-  numSamples = time * samplingRate;
-  //calculates the time interval between each sample
+  //calculates the number of samples to take by multiplying the timeValue by the samplingRate
+  numSamples = totalDuration * samplingRate;
+  //calculates the timeValue interval between each sample
   const sampleInterval = duration / numSamples;
-  let t = 0;
+  let timeValue = 0;
   //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
-  for (let i = 0; i < numSamples; i++) {
-    const x = t;
+  for (let sampleCounter = 0; sampleCounter < numSamples; sampleCounter++) {
+    const x = timeValue;
     //initializes the y-value of the sampled data point to NaN, indicating that it is currently unknown
     let y = NaN;
     //binary search function will iterate through each data point in the original signal to find the y-value of the current sampled data point
     //j is set to the index of the nearest value to x in data.x array, using the binarySearch function
-    let j = binarySearch(data.x, x);
+    let nearestIndex = binarySearch(data.x, x);
     //If j is within range of the data.x array, then y is calculated using linear interpolation between y values corresponding to x1 and x2 values
-    if (j >= 0 && j < data.x.length - 1) {
-      const x1 = data.x[j];
-      const y1 = data.y[j];
-      const x2 = data.x[j + 1];
-      const y2 = data.y[j + 1];
+    if (nearestIndex >= 0 && nearestIndex < data.x.length - 1) {
+      const x1 = data.x[nearestIndex];
+      const y1 = data.y[nearestIndex];
+      const x2 = data.x[nearestIndex + 1];
+      const y2 = data.y[nearestIndex + 1];
       y = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
     }
     //A new object with x and y properties is pushed to the sampledData array
@@ -287,7 +335,7 @@ function sampleData(samplingRate) {
       y: y
     });
     // increment the time variable by the sample interval
-    t += sampleInterval; 
+    timeValue += sampleInterval;
   }
   //isFirst is set to false to indicate that this is not the first time sampleData is being called
   isFirst = false;
@@ -372,136 +420,149 @@ function reconstructSignal(sampledData, numPoints) {
 //   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
 // });
 
-removeSignalComponentButton.addEventListener("click", () => {
-  const selectedIndex = signalComponentSelect.selectedIndex;
-  const selectedComponentText =
-    signalComponentSelect.options[selectedIndex].value;
-  removeComponent(selectedComponentText);
-  signalComponentSelect.remove(selectedIndex);
-  updateSignal();
+removeSignalComponentButton.addEventListener("click", () => { // add event listener to the remove signal component button
+  const selectedIndex = signalComponentSelect.selectedIndex; // get the index of the selected signal component from the dropdown
+  const selectedComponentText = signalComponentSelect.options[selectedIndex].value; // get the text of the selected signal component
+  removeComponent(selectedComponentText); // remove the selected component from the signal graph
+  signalComponentSelect.remove(selectedIndex); // remove the selected component from the dropdown
+  updateSignal(); // update the signal graph after removing the component
 });
 
+
 function updateSignal() {
+  // Update the plot with the current signal data
   Plotly.update(
     signalGraph,
     { y: [signalGraph.data[0].y], x: [signalGraph.data[0].x] },
     {},
     0
   );
+
+  // Update the signal reconstruction plot
   updateReconstruction();
+
+  // Update the signal difference plot (original signal - reconstructed signal)
   updateDifferenceOne();
 }
 
+
 function updateReconstruction() {
-  if (reconstructedGraph.data.length != 0) {
-    sampleData(userSampRate);
-    const reconstructedSignal = reconstructSignal(
+  if (reconstructedGraph.data.length != 0) { // check if there is data in the reconstructedGraph
+    sampleData(userSampRate); // get sampled data with the current user-specified sampling rate
+    const reconstructedSignal = reconstructSignal( // reconstruct the signal with the sampled data and its length
       sampledData,
       sampledData.length
     );
-    Plotly.update(
+    Plotly.update( // update the reconstructedGraph with the new reconstructed signal
       reconstructedGraph,
       { x: [reconstructedSignal.x], y: [reconstructedSignal.y] },
       {},
       0
     );
-    updateDifferenceTwo();
+    updateDifferenceTwo(); // update the difference graph between the original and reconstructed signals
   }
 }
 
+
 function updateDifferenceOne() {
-  if (differenceGraph.data.length != 0)
+  if (differenceGraph.data.length != 0) // check if there is any data in the differenceGraph
     Plotly.update(
       differenceGraph,
-      { x: [signalGraph.data[0].x], y: [signalGraph.data[0].y] },
+      { x: [signalGraph.data[0].x], y: [signalGraph.data[0].y] }, // update differenceGraph with the x and y data from signalGraph
       {},
       0
     );
 }
 
+
 function updateDifferenceTwo() {
+  // check if the differenceGraph has any data
   if (differenceGraph.data.length != 0)
+    // update the differenceGraph with the x and y values of the reconstructedGraph
     Plotly.update(
       differenceGraph,
       { x: [reconstructedGraph.data[0].x], y: [reconstructedGraph.data[0].y] },
-      {},
-      1
+      {},  // empty options object
+      1   // trace index to update
     );
 }
 
+
 function getMaxFrequency(data) {
-  if(isComposed==true && isUploaded==false)
-  {
+  //If the signal is composed and not uploaded, returns the pre-determined maximum frequenc
+  if (isComposed == true && isUploaded == false) {
     const maxFrequency = maxComposedFrequency;
-    console.log("lol",maxFrequency);
     return maxFrequency;
   }
-  else{
-  
-  // Calculate the time step between samples
-  const dt = data.x[1] - data.x[0];
+  else {
 
-  // Determine the units of the x values
-  const units = data.xUnits || '';
+    // Calculate the time step between samples
+    const timeStep = data.x[1] - data.x[0];
 
-  // Convert the time step to seconds if necessary
-  if (units === 'ms') {
-    dt /= 1000;
-  } else if (units === 'us') {
-    dt /= 1000000;
+    // Determine the units of the x values
+    const units = data.xUnits || '';
+
+    // Convert the time step to seconds if necessary
+    if (units === 'ms') {
+      timeStep /= 1000;
+    } else if (units === 'us') {
+      timeStep /= 1000000;
+    }
+
+    // Calculate the sampling frequency
+    const samplingFrequency = 1 / timeStep;
+
+    // Calculate the Nyquist frequency
+    const nyquistFrequency = samplingFrequency / 2;
+
+    // Calculate the maximum frequency
+    const maxFrequency = nyquistFrequency;
+    return maxFrequency;
   }
-
-  // Calculate the sampling frequency
-  const samplingFrequency = 1 / dt;
-
-  // Calculate the Nyquist frequency
-  const nyquistFrequency = samplingFrequency / 2;
-
-  // Calculate the maximum frequency
-  const maxFrequency = nyquistFrequency;
-  console.log("lol",maxFrequency);
-  return maxFrequency;
-}
 }
 // Function to update the sampling rate based on the normalized slider value
 function updateSamplingRateNormalized() {
-console.log("Slider normalized value changed!");
-const sliderValue = parseFloat(normalizedValueSlider.value);
-const maxFrequency = getMaxFrequency(signalGraph.data[0]);
-const newSamplingRate = sliderValue * maxFrequency;
+  console.log("Slider normalized value changed!");
+  // Get the current value of the slider
+  const sliderValue = parseFloat(normalizedValueSlider.value);
+  // Get the maximum frequency from the signal data
+  const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+  // Calculate the new sampling rate based on the slider value and the maximum frequency
+  const newSamplingRate = sliderValue * maxFrequency;
 
-// Update the sampling rate input element and the displayed value
-samplingRInput.value = newSamplingRate.toFixed(2).toString();
-normalizedValueDisplay.textContent = sliderValue.toFixed(2);
+  // Update the sampling rate input element and the displayed value
+  samplingRInput.value = newSamplingRate.toFixed(2).toString();
+  normalizedValueDisplay.textContent = sliderValue.toFixed(2);
 
-// Trigger the change event for the sampling rate input element
-samplingRInput.dispatchEvent(new Event("change"));
-// updateReconstruction();
+  // Trigger the change event for the sampling rate input element
+  samplingRInput.dispatchEvent(new Event("change"));
+
+  // Update the graphs with the new sampling frequency
+  updateReconstruction();
 }
 
 function updateSamplingRateActual() {
-  // Retrieve the current value of the slider
+  // Get the current value of the slider
   const sliderValue = parseFloat(freqValueSlider.value);
-// Define the maximum frequency range
-const maxFrequency = getMaxFrequency(signalGraph.data[0]);
-const maxFrequencyRange = [0, 4 * maxFrequency];
+  // Get the maximum frequency from the signal data
+  const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+  //Defines the range that will be used in the slider
+  const maxFrequencyRange = [0, 4 * maxFrequency];
 
-// Set the minimum and maximum values of the slider
-freqValueSlider.min = maxFrequencyRange[0];
-freqValueSlider.max = maxFrequencyRange[1];
+  // Set the minimum and maximum values of the slider
+  freqValueSlider.min = maxFrequencyRange[0];
+  freqValueSlider.max = maxFrequencyRange[1];
 
- // Calculate the new sampling frequency based on the current maximum frequency
- const newSamplingRate = sliderValue;
+  // Calculate the new sampling frequency based on the current maximum frequency
+  const newSamplingRate = sliderValue;
 
-  // Update the sampling frequency input with the new value
+ // Update the sampling rate input element and the displayed value
   samplingRInput.value = newSamplingRate.toFixed(2).toString();
-
   freqValueDisplay.textContent = sliderValue.toFixed(2);
 
-// Trigger the change event for the sampling rate input element
-samplingRInput.dispatchEvent(new Event("change"));
+  // Trigger the change event for the sampling rate input element
+  samplingRInput.dispatchEvent(new Event("change"));
 
   // Update the graphs with the new sampling frequency
-  // updateReconstruction();
-
+  updateReconstruction();
 }
