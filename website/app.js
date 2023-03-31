@@ -276,7 +276,7 @@ samplingRInput.addEventListener("change", function () {
   console.log("Reconstructed Data:", reconstructedData);
 
   if (reconstructedGraph.data.length != 0) {
-    updateGraphs();
+    updateSignal();
   } else {
     Plotly.addTraces(reconstructedGraph, {
       x: reconstructedData.x,
@@ -391,6 +391,7 @@ function sinc(x) {
 function reconstructSignal(sampledData, numPoints) {
   console.log("Sampled Data:", sampledData);
   console.log("Num Points:", numPoints);
+
   const reconstructedData = { x: [], y: [] };
   const T = sampledData[1].x - sampledData[0].x;
 
@@ -405,8 +406,33 @@ function reconstructSignal(sampledData, numPoints) {
     reconstructedData.x.push(t);
     reconstructedData.y.push(sum);
   }
-
   return reconstructedData;
+//   var layout = {
+//     xaxis: {
+//       title: 'Time (s)',
+//       range: [0, reconstructedData.x[reconstructedData.x.length - 1]]
+//     },
+//     yaxis: {
+//       title: 'Amplitude',
+//       range: [-1.5, 1.5]
+//     },
+//     data: [
+//       {
+//         x: reconstructedData.x,
+//         y: reconstructedData.y,
+//         type: 'scatter',
+//         mode: 'lines',
+//         line: {
+//           smoothing: 0.5,
+//           interpolation: 'spline',
+//           width: 2
+//         }
+//       }
+//     ]
+//   };
+
+//  /// Plotly.u('plot', [layout.data], layout);
+//   Plotly.update(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y }, {}, [0]);
 }
 
 // samplingFrequency.addEventListener("change", () => {
@@ -455,7 +481,7 @@ function updateReconstruction() {
     );
     Plotly.update( // update the reconstructedGraph with the new reconstructed signal
       reconstructedGraph,
-      { x: [reconstructedSignal.x], y: [reconstructedSignal.y] },
+      { x: [reconstructedSignal.x], y: [reconstructedSignal.y] , type: 'scatter', mode: 'lines', line: { smoothing: 0.5, interpolation: 'spline', width: 2 }},
       {},
       0
     );
@@ -566,3 +592,25 @@ function updateSamplingRateActual() {
   // Update the graphs with the new sampling frequency
   updateReconstruction();
 }
+// Function to save signal data as CSV file
+function saveSignalData() {
+  // Get the signal data
+  const signalData = signalGraph.data[0];
+  // Create a CSV string from the signal data
+  let csvString = "x,y\n";
+  for (let i = 0; i < signalData.x.length; i++) {
+    csvString += signalData.x[i] + "," + signalData.y[i] + "\n";
+  }
+  // Create a blob from the CSV string
+  const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" });
+  // Create a download link for the CSV file
+  const downloadLink = document.createElement("a");
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = "signal_data.csv";
+  // Click the download link to download the CSV file
+  downloadLink.click();
+}
+
+// Add event listener to save button
+const saveButton = document.getElementById("saveButton");
+saveButton.addEventListener("click", saveSignalData);
