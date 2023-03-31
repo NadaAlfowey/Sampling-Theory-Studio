@@ -310,7 +310,7 @@ function sampleData(samplingRate) {
     Plotly.deleteTraces(signalGraph, -1);
     sampledData = [];
   }
-  for (let duration = 0; duration <= 1000; duration++) {
+  for (let duration = 0; duration < 1000; duration++) {
     totalDuration = duration / 1000;
   }
   //gets the last uploaded signal from the signals array
