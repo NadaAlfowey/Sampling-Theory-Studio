@@ -40,16 +40,16 @@ function createPlot(graphElement) {
     // Define the x-axis options
     xaxis: {
       // Enable the range slider for the x-axis
-      rangeslider: {
-        // Set the initial range of the slider to [0, 1]
-        range: [0, 1],
-        // Make the range slider visible
-        visible: true,
-        // Disable dragging of the range slider
-        dragmode: false,
-        // Disable zooming with the range slider
-        zoom: false,
-      },
+      // rangeslider: {
+      //   // Set the initial range of the slider to [0, 1]
+      //   range: [0, 1],
+      //   // Make the range slider visible
+      //   visible: true,
+      //   // Disable dragging of the range slider
+      //   dragmode: false,
+      //   // Disable zooming with the range slider
+      //   zoom: false,
+      // },
       // Set the title for the x-axis
       title: "Time (sec)",
       // Enable zooming for the x-axis with a max zoom level of 1000x
@@ -69,6 +69,7 @@ function createPlot(graphElement) {
     responsive: true,
     // Enable automatic resizing of the plot to fit its container element
     autosize: true,
+    
   });
 }
 
@@ -276,11 +277,15 @@ samplingRInput.addEventListener("change", function () {
   console.log("Reconstructed Data:", reconstructedData);
 
   if (reconstructedGraph.data.length != 0) {
-    updateGraphs();
+    updateSignal();
   } else {
     Plotly.addTraces(reconstructedGraph, {
       x: reconstructedData.x,
       y: reconstructedData.y,
+      mode: "lines",
+      name: "spline",
+      line: { shape: "spline" },
+      type: "scatter",
     });
     Plotly.addTraces(differenceGraph, {
       x: signalGraph.data[0].x,
@@ -289,6 +294,10 @@ samplingRInput.addEventListener("change", function () {
     Plotly.addTraces(differenceGraph, {
       x: reconstructedGraph.data[0].x,
       y: reconstructedGraph.data[0].y,
+      mode: "lines",
+      name: "spline",
+      line: { shape: "spline" },
+      type: "scatter",
     });
   }
 });
@@ -392,11 +401,12 @@ function sinc(x) {
 function reconstructSignal(sampledData, numPoints) {
   console.log("Sampled Data:", sampledData);
   console.log("Num Points:", numPoints);
+
   const reconstructedData = { x: [], y: [] };
   const T = sampledData[1].x - sampledData[0].x;
 
-  for (let i = 0; i < numPoints; i++) {
-    const t = i * T;
+  for (let i = 0; i < signals[0].x.length; i++) {
+    const t = signals[0].x[i];
     let sum = 0;
 
     for (let n = 0; n < sampledData.length; n++) {
@@ -406,8 +416,33 @@ function reconstructSignal(sampledData, numPoints) {
     reconstructedData.x.push(t);
     reconstructedData.y.push(sum);
   }
-
   return reconstructedData;
+//   var layout = {
+//     xaxis: {
+//       title: 'Time (s)',
+//       range: [0, reconstructedData.x[reconstructedData.x.length - 1]]
+//     },
+//     yaxis: {
+//       title: 'Amplitude',
+//       range: [-1.5, 1.5]
+//     },
+//     data: [
+//       {
+//         x: reconstructedData.x,
+//         y: reconstructedData.y,
+//         type: 'scatter',
+//         mode: 'lines',
+//         line: {
+//           smoothing: 0.5,
+//           interpolation: 'spline',
+//           width: 2
+//         }
+//       }
+//     ]
+//   };
+
+//  /// Plotly.u('plot', [layout.data], layout);
+//   Plotly.update(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y }, {}, [0]);
 }
 
 // samplingFrequency.addEventListener("change", () => {
@@ -454,9 +489,17 @@ function updateReconstruction() {
       sampledData,
       sampledData.length
     );
-    Plotly.update( // update the reconstructedGraph with the new reconstructed signal
+    Plotly.update(
+      // update the reconstructedGraph with the new reconstructed signal
       reconstructedGraph,
-      { x: [reconstructedSignal.x], y: [reconstructedSignal.y] },
+      {
+        x: [reconstructedSignal.x],
+        y: [reconstructedSignal.y],
+        mode: "lines",
+        name: "Reconstructed + Sampled",
+        //line: { shape: "spline" },
+        type: "scatter",
+      },
       {},
       0
     );
@@ -567,3 +610,25 @@ function updateSamplingRateActual() {
   // Update the graphs with the new sampling frequency
   updateReconstruction();
 }
+// Function to save signal data as CSV file
+function saveSignalData() {
+  // Get the signal data
+  const signalData = signalGraph.data[0];
+  // Create a CSV string from the signal data
+  let csvString = "x,y\n";
+  for (let i = 0; i < signalData.x.length; i++) {
+    csvString += signalData.x[i] + "," + signalData.y[i] + "\n";
+  }
+  // Create a blob from the CSV string
+  const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" });
+  // Create a download link for the CSV file
+  const downloadLink = document.createElement("a");
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = "signal_data.csv";
+  // Click the download link to download the CSV file
+  downloadLink.click();
+}
+
+// Add event listener to save button
+const saveButton = document.getElementById("saveButton");
+saveButton.addEventListener("click", saveSignalData);
