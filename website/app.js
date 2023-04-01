@@ -311,14 +311,14 @@ function sampleData(samplingRate) {
   }
   for (let duration = 0; duration < 1000; duration++) {
     totalDuration = duration / 1000;
-  }
+  }//999/1000
   //gets the last uploaded signal from the signals array
   const data = signals[signals.length - 1];
   //gets the duration of the signal, which is the last value in the x array
   const duration = data.x[data.x.length - 1];
   //calculates the number of samples to take by multiplying the timeValue by the samplingRate
-  numSamples = totalDuration * samplingRate;
-  //calculates the timeValue interval between each sample
+  numSamples = totalDuration * samplingRate;//CHANGE TOTALDURATION TO DURATION
+  //calculates the time interval between each sample
   const sampleInterval = duration / numSamples;
   let timeValue = 0;
   //starts a for loop that will iterate numSamples times, creating one sampled data point for each iteration
@@ -328,7 +328,7 @@ function sampleData(samplingRate) {
     let y = NaN;
     //binary search function will iterate through each data point in the original signal to find the nearest x-value of the current sampled data point
     //j is set to the index of the nearest value to x in data.x array, using the binarySearch function
-    let nearestIndex = binarySearch(data.x, x);
+    let nearestIndex = binarySearch(data.x, x); 
     //If j is within range of the data.x array, then y is calculated using linear interpolation between y values corresponding to x1 and x2 values
     if (nearestIndex >= 0 && nearestIndex < data.x.length - 1) {
       const x1 = data.x[nearestIndex];
@@ -383,15 +383,14 @@ function binarySearch(arr, x) {
 
 function sinc(x) {
   if (x === 0) return 1;
-  const piX = Math.PI * x;
+  const piX = Math.PI * x; //x is the distance between the current point and the nearest sample point
   return Math.sin(piX) / piX;
 }
 
 function reconstructSignal(sampledData, numPoints) {
-
   const reconstructedData = { x: [], y: [] };
-  const T = sampledData[1].x - sampledData[0].x;
-
+  const T = sampledData[1].x - sampledData[0].x; //sampling period
+  //calculate the reconstructed signal value at each time value
   // for (let i = 0; i < numPoints; i++) {
   //   const t = i * T;
   for (let i = 0; i < signals[0].x.length; i++) {
@@ -400,38 +399,39 @@ function reconstructSignal(sampledData, numPoints) {
 
     for (let n = 0; n < sampledData.length; n++) {
       sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
+      //divided by the sampling period T to obtain a normalized distance between the sample and the current reconstruction time.
     }
 
     reconstructedData.x.push(t);
     reconstructedData.y.push(sum);
   }
   return reconstructedData;
-//   var layout = {
-//     xaxis: {
-//       title: 'Time (s)',
-//       range: [0, reconstructedData.x[reconstructedData.x.length - 1]]
-//     },
-//     yaxis: {
-//       title: 'Amplitude',
-//       range: [-1.5, 1.5]
-//     },
-//     data: [
-//       {
-//         x: reconstructedData.x,
-//         y: reconstructedData.y,
-//         type: 'scatter',
-//         mode: 'lines',
-//         line: {
-//           smoothing: 0.5,
-//           interpolation: 'spline',
-//           width: 2
-//         }
-//       }
-//     ]
-//   };
+  //   var layout = {
+  //     xaxis: {
+  //       title: 'Time (s)',
+  //       range: [0, reconstructedData.x[reconstructedData.x.length - 1]]
+  //     },
+  //     yaxis: {
+  //       title: 'Amplitude',
+  //       range: [-1.5, 1.5]
+  //     },
+  //     data: [
+  //       {
+  //         x: reconstructedData.x,
+  //         y: reconstructedData.y,
+  //         type: 'scatter',
+  //         mode: 'lines',
+  //         line: {
+  //           smoothing: 0.5,
+  //           interpolation: 'spline',
+  //           width: 2
+  //         }
+  //       }
+  //     ]
+  //   };
 
-//  /// Plotly.u('plot', [layout.data], layout);
-//   Plotly.update(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y }, {}, [0]);
+  //  /// Plotly.u('plot', [layout.data], layout);
+  //   Plotly.update(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y }, {}, [0]);
 }
 
 // samplingFrequency.addEventListener("change", () => {
@@ -555,7 +555,7 @@ function getMaxFrequency(data) {
 }
 // Function to update the sampling rate based on the normalized slider value
 function updateSamplingRateNormalized() {
-  console.log("Slider normalized value changed!");
+  //console.log("Slider normalized value changed!");
   // Get the current value of the slider
   const sliderValue = parseFloat(normalizedValueSlider.value);
   // Get the maximum frequency from the signal data
