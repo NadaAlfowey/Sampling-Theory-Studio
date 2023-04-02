@@ -438,17 +438,6 @@ function reconstructSignal(sampledData, numPoints) {
   //   Plotly.update(reconstructedGraph, { x: reconstructedData.x, y: reconstructedData.y }, {}, [0]);
 }
 
-// samplingFrequency.addEventListener("change", () => {
-//   const signalData = signalGraph.data[0];
-//   // const sampledSignal = sampleSignal(signalData, samplingFrequency.value);
-//   const reconstructedSignal = reconstructSignal(sampledSignal, signalData.x.length);
-//   const differenceSignal = calculateDifference(signalData, reconstructedSignal);
-
-//   Plotly.update(signalGraph, { marker: { size: 6 } }, {}, [0]);
-//   Plotly.update(reconstructedGraph, { x: reconstructedSignal.x, y: reconstructedSignal.y }, {}, [0]);
-//   Plotly.update(differenceGraph, { x: differenceSignal.x, y: differenceSignal.y }, {}, [0]);
-// });
-
 removeSignalComponentButton.addEventListener("click", () => { // add event listener to the remove signal component button
   const selectedIndex = signalComponentSelect.selectedIndex; // get the index of the selected signal component from the dropdown
   const selectedComponentText = signalComponentSelect.options[selectedIndex].value; // get the text of the selected signal component
@@ -468,9 +457,6 @@ function updateSignal() {
 
   // Update the signal reconstruction plot
   updateReconstruction();
-
-  // Update the signal difference plot (original signal - reconstructed signal)
-  //updateDifferenceOne();
 }
 
 function updateReconstruction() {
@@ -493,17 +479,6 @@ function updateReconstruction() {
     updateDifferenceGraph(differenceData); // update the difference graph between the original and reconstructed signals
   }
 }
-
-// function updateDifferenceOne() {
-//   if (differenceGraph.data.length != 0) // check if there is any data in the differenceGraph
-//     Plotly.update(
-//       differenceGraph,
-//       { x: [signalGraph.data[0].x], y: [signalGraph.data[0].y] }, // update differenceGraph with the x and y data from signalGraph
-//       {},
-//       0
-//     );
-// }
-
 function updateDifferenceGraph(differenceData) {
   // check if the differenceGraph has any data
   if (differenceGraph.data.length != 0)
@@ -511,8 +486,8 @@ function updateDifferenceGraph(differenceData) {
     Plotly.update(
       differenceGraph,
       { x: [differenceData.x], y: [differenceData.y] },
-      {}, // empty options object
-      0 // trace index to update
+      {}, 
+      0 
     );
 }
 
