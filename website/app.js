@@ -497,30 +497,68 @@ function updateReconstruction() {
 }
 
 
+// function updateDifferenceOne() {
+//   if (differenceGraph.data.length != 0) // check if there is any data in the differenceGraph
+//     Plotly.update(
+//       differenceGraph,
+//       { x: [signalGraph.data[0].x], y: [signalGraph.data[0].y] }, // update differenceGraph with the x and y data from signalGraph
+//       {},
+//       0
+//     );
+// }
+
+
+// function updateDifferenceTwo() {
+//   // check if the differenceGraph has any data
+//   if (differenceGraph.data.length != 0)
+//     // update the differenceGraph with the x and y values of the reconstructedGraph
+//     Plotly.update(
+//       differenceGraph,
+//       { x: [reconstructedGraph.data[0].x], y: [reconstructedGraph.data[0].y] },
+//       {},  // empty options object
+//       1   // trace index to update
+//     );
+// }
 function updateDifferenceOne() {
-  if (differenceGraph.data.length != 0) // check if there is any data in the differenceGraph
-    Plotly.update(
-      differenceGraph,
-      { x: [signalGraph.data[0].x], y: [signalGraph.data[0].y] }, // update differenceGraph with the x and y data from signalGraph
-      {},
-      0
-    );
+  // check if the differenceGraph has any data
+  if (differenceGraph.data.length != 0) {
+    // update the differenceGraph with the x and y values of the difference signal
+    const differenceSignal = calculateDifference(signalGraph.data[0], reconstructedGraph.data[0]);
+    Plotly.update(differenceGraph, differenceSignal, {});
+  }
 }
-
-
 function updateDifferenceTwo() {
   // check if the differenceGraph has any data
-  if (differenceGraph.data.length != 0)
-    // update the differenceGraph with the x and y values of the reconstructedGraph
-    Plotly.update(
-      differenceGraph,
-      { x: [reconstructedGraph.data[0].x], y: [reconstructedGraph.data[0].y] },
-      {},  // empty options object
-      1   // trace index to update
-    );
+  if (differenceGraph.data.length != 0) {
+    // update the differenceGraph with the x and y values of the difference signal
+    const differenceSignal = calculateDifference(signalGraph.data[0], reconstructedGraph.data[0]);
+    Plotly.update(differenceGraph, differenceSignal, {}, 1);
+  }
 }
+// function calculateDifference(originalSignal, reconstructedSignal) {
+//   const differenceSignal = { x: [], y: [] };
 
+//   for (let i = 0; i < originalSignal.x.length; i++) {
+//     differenceSignal.x.push(i);
+//     differenceSignal.y.push(originalSignal.y[i] - reconstructedSignal.y[i]);
+//   }
 
+//   return differenceSignal;
+// }
+function calculateDifference(originalSignal, reconstructedSignal) {
+  const differenceData = { x: [], y: [] };
+  const minLength = Math.min(originalSignal.x.length, reconstructedSignal.x.length);
+  const originalData = originalSignal.y.slice(0, minLength);
+  const reconstructedData = reconstructedSignal.y.slice(0, minLength);
+
+ 
+  for (let i = 0; i < minLength; i++) {
+    differenceData.x.push(originalSignal.x[i]);
+    differenceData.y.push(originalData[i] - reconstructedData[i]);
+  }
+
+  return differenceData;
+}
 function getMaxFrequency(data) {
   //If the signal is composed and not uploaded, returns the pre-determined maximum frequenc
   if (isComposed == true && isUploaded == false) {
