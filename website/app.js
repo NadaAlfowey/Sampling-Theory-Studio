@@ -71,7 +71,7 @@ SNRrange.addEventListener("change", () => {
   ) {
     //generate noise signal and scale noise signal to the range of the signal power.
     //scaling matches the amplitude range of the noise to the amplitude range of the signal so that signal does not completely become drowned out by noise
-    const noiseValue = Math.random() * Math.sqrt(signalPower);
+    const noiseValue = Math.random() * Math.sqrt(signalPower); //0->1
     generatedNoiseArr.push(noiseValue);
   }
   //calculate noise power
@@ -84,6 +84,7 @@ SNRrange.addEventListener("change", () => {
   //calculate attenuation factor SNR = signal power/ A * noise power
   //attenuation is used to scale the generated noise signal before adding it to the original signal.
   //This helps to achieve the desired SNR level while preserving the original characteristics of the signal.
+  //attenuation factor is a measure of signal loss, while SNR is a measure of the signal quality in relation to the noise level.
   const attenuation = signalPower / (SNRrange.value * noisePower);
   //multiply each val in the noise by the attenuation factor
   generatedNoiseArr = generatedNoiseArr.map((noise) => noise * attenuation);
@@ -160,10 +161,6 @@ saveButton.addEventListener("click", saveSignalData);
 // Get the sampling rate from the input field and pass it to the sampleData function
 samplingRInput.addEventListener("change", function () {
   userSampRate = parseInt(this.value);
-  if (userSampRate <= 0) {
-    window.alert("Invalid Frequency");
-    return;
-  }
   //sample and reconstruct
   sampleData(userSampRate);
   const reconstructedData = reconstructSignal(sampledData, sampledData.length);
@@ -424,19 +421,20 @@ function sinc(x) {
 function reconstructSignal(sampledData, numPoints) {
   const reconstructedData = { x: [], y: [] };
   //sampling period
-  const T = sampledData[1].x - sampledData[0].x;
+  const samplingPeriod = sampledData[1].x - sampledData[0].x;
   //calculate the reconstructed signal value at each time value
-  // for (let i = 0; i < numPoints; i++) {
+  // for (let i = 0; i < numPoints; i++) { 
   //   const t = i * T;
-  for (let i = 0; i < signals[0].x.length; i++) {
-    const t = signals[0].x[i];
+  for (let timeIndex = 0; timeIndex < signals[0].x.length; timeIndex++) {// QUESTION TO ASK
+    const time = signals[0].x[timeIndex];
     let sum = 0;
 
-    for (let n = 0; n < sampledData.length; n++) {
-      sum += sampledData[n].y * sinc((t - sampledData[n].x) / T);
+    for (let sampleIndex = 0; sampleIndex < sampledData.length; sampleIndex++) {
+      sum +=
+        sampledData[sampleIndex].y * sinc((time - sampledData[sampleIndex].x) / samplingPeriod);
       //divided by the sampling period T to obtain a normalized distance between the sample and the current reconstruction time.
     }
-    reconstructedData.x.push(t);
+    reconstructedData.x.push(time);
     reconstructedData.y.push(sum);
   }
   return reconstructedData;
@@ -447,7 +445,6 @@ function calculateDifference() {
   let differenceData = { x: [], y: [] };
   let signalX = signals[0].x;
   let signalY = signals[0].y;
-  let reconstructedDataX = reconstructedGraph.data[0].x;
   let reconstructedDataY = reconstructedGraph.data[0].y;
   for (let i = 0; i < signalX.length; i++) {
     differenceData.y.push(signalY[i] - reconstructedDataY[i]);
@@ -479,6 +476,7 @@ function getMaxFrequency(data) {
     const nyquistFrequency = samplingFrequency / 2;
     // Calculate the maximum frequency
     const maxFrequency = nyquistFrequency;
+    console.log(maxFrequency);
     return maxFrequency;
   }
 }
