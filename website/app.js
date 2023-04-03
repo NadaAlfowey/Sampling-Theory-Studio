@@ -338,21 +338,17 @@ function updateSignalComponentsList(frequency, amplitude) {
 //This function applys sampling using the sampling frequency entered
 function sampleData(samplingRate) {
   let numSamples = 0;
-  let totalDuration = 0;
   //checks if it's not the first time the function is being called, and if so, deletes the last trace from the plot and clears the sampledData array
   if (!isFirst) {
     Plotly.deleteTraces(signalGraph, -1);
     sampledData = [];
   }
-  for (let duration = 0; duration < 1000; duration++) {
-    totalDuration = duration / 1000;
-  } //999/1000
   //gets the last uploaded signal from the signals array
   const data = signals[signals.length - 1];
   //gets the duration of the signal, which is the last value in the x array
   const duration = data.x[data.x.length - 1];
   //calculates the number of samples to take by multiplying the timeValue by the samplingRate
-  numSamples = totalDuration * samplingRate; //CHANGE TOTALDURATION TO DURATION
+  numSamples = duration * samplingRate;
   //calculates the time interval between each sample
   const sampleInterval = duration / numSamples;
   let timeValue = 0;
