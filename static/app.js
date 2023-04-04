@@ -541,7 +541,7 @@ async function updateSamplingRateNormalized() {
   const sliderValue = parseFloat(normalizedValueSlider.value);
   // Get the maximum frequency from the signal data
   const maxFrequency = await getMaxFrequency();
-  //console.log(maxFrequency);
+  console.log(maxFrequency);
   // Calculate the new sampling rate based on the slider value and the maximum frequency
   const newSamplingRate = sliderValue * maxFrequency;
   // Update the sampling rate input element and the displayed value
