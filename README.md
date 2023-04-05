@@ -10,17 +10,6 @@
 ### Introduction
 This web application is designed to illustrate the process of signal sampling and recovery and showcase the importance and validation of the Nyquist rate. The application allows the user to load a mid-length signal, sample it via different frequencies, and recover the original signal using the Whittaker–Shannon interpolation formula. The Nyquist-Shannon sampling theorem provides assurance that if the sampling frequency is greater than or equal to the signal bandwidth (or twice the maximum frequency for real signals), the original signal can be completely recovered.
 
-<!-- ### Quick Preview
-Web application using frontend technologies & flask for illustrating how the sampling theory work,
-applying Nyquist sampling, validating it and reconstructing the signal again from the sample points. It can also 
-generate signals with various frequencies , amplitudes, sum them up or remove them to make a new signal.
-
-The Sampling is done with Nyquist sampling while the reconstruction using Whittaker–Shannon
-interpolation formula.
-
-`Sampling Formula -> Fsample >= 2 * Fmaximum`
-
-![](data/readme%20data/SampLab.gif) -->
 
 ### Project Structure
 The Web Application is built using:
