@@ -21,8 +21,8 @@ The Web Application is built using:
 - Backend framework:
   - Flask (Python)
 
-The Frontend main function to set the structure of the page and plot the signals and mange
-the user interface, while the backend is responsible for performing signal operations such as utilizing FFT to determine the highest frequency present in the signal.
+The Frontend main function to set the structure of the page and plot the signals and manage
+the user interface, while the Backend is responsible for performing signal operations such as utilizing FFT to determine the highest frequency present in the signal.
 
 ```
 master
