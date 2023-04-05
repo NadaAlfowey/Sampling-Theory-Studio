@@ -82,7 +82,7 @@ In this web application you can:-
 ### Getting Started
 To get started with the Signal Sampling and Recovery Web Application, follow these steps:
 
-1.Clone the repository:
+1. Clone the repository:
 ``` 
 git clone https://github.com/your-username/signal-sampling-recovery.git
 ``` 
