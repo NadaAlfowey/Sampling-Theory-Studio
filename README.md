@@ -70,7 +70,7 @@ In this web application you can:-
 
 ![](data/readme%20data/noise.gif)
 
-> 6. Sample the signal, reconstruct it from sampled points, and display the difference between them:
+> 6. Sample the signal, reconstruct it, and display the difference between them:
 
 ![](data/readme%20data/sampling.gif)
 
@@ -94,7 +94,6 @@ Download it from www.python.org/downloads/
    - Flask
    - scipy
    - numpy
-   - panda
  - Open Project Terminal & Run
 ```
 pip install -r requirements.txt
