@@ -75,19 +75,19 @@ To get started with the Signal Sampling and Recovery Web Application, follow the
 ``` 
 git clone https://github.com/your-username/signal-sampling-recovery.git
 ``` 
-2. Install Python3:
+2. Install Python3 from:
 ``` 
-Download it from www.python.org/downloads/
+www.python.org/downloads/
 ```
-3. Install the following packages:
+3. Install the following packages:-
    - Flask
    - scipy
    - numpy
- - Open Project Terminal & Run
+ - Open Project Terminal & Run:
 ```
 pip install -r requirements.txt
 ```
-4. Start Server by Running 
+4. Start Server by Running:
 ```
 python app.py
 ```
