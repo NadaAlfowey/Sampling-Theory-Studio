@@ -1,7 +1,6 @@
 # Sampling-Theory-Studio
 ## Table of contents:
 - [Introduction](#introduction)
-- [Quick Preview](#quick-preview)
 - [Project Features](#project-features)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -99,7 +98,7 @@ The application has been tested on Google Chrome, Microsoft Edge and Mozilla Fir
 ### Team
 Biomedical Signal Processing (SBEN311) class task created by:
 
-| Team Members' Names                                   
+| Team Members                                  
 |-------------------------------------------------------
 | [Nada Mohamed](https://github.com/NadaAlfowey)
 | [Abdulmonem Elsherif](https://github.com/AbdulmonemElsherif)   
