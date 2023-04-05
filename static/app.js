@@ -159,7 +159,7 @@ removeSignalComponentButton.addEventListener("click", () => {
 saveButton.addEventListener("click", saveSignalData);
 
 // Get the sampling rate from the input field and pass it to the sampleData function
-samplingRInput.addEventListener("change", function () {
+samplingRInput.addEventListener("change", async function () {
   userSampRate = parseInt(this.value);
   //sample and reconstruct
   sampleData(userSampRate);
@@ -186,6 +186,7 @@ samplingRInput.addEventListener("change", function () {
       type: "scatter",
     });
   }
+  //await updateSamplingRateNormalized();
 });
 
 //---------------------------------------UTITILITY FUNCTIONS------------------------------------------------
@@ -430,15 +431,17 @@ function reconstructSignal(sampledData, numPoints) {
   //sampling period
   const samplingPeriod = sampledData[1].x - sampledData[0].x;
   //calculate the reconstructed signal value at each time value
-  // for (let i = 0; i < numPoints; i++) { 
+  // for (let i = 0; i < numPoints; i++) {
   //   const t = i * T;
-  for (let timeIndex = 0; timeIndex < signals[0].x.length; timeIndex++) {// QUESTION TO ASK
+  for (let timeIndex = 0; timeIndex < signals[0].x.length; timeIndex++) {
+    // QUESTION TO ASK
     const time = signals[0].x[timeIndex];
     let sum = 0;
 
     for (let sampleIndex = 0; sampleIndex < sampledData.length; sampleIndex++) {
       sum +=
-        sampledData[sampleIndex].y * sinc((time - sampledData[sampleIndex].x) / samplingPeriod);
+        sampledData[sampleIndex].y *
+        sinc((time - sampledData[sampleIndex].x) / samplingPeriod);
       //divided by the sampling period T to obtain a normalized distance between the sample and the current reconstruction time.
     }
     reconstructedData.x.push(time);
@@ -461,31 +464,27 @@ function calculateDifference() {
 }
 
 //This function is used to get the maximum frequency of the current signal
-function getMaxFrequency(data) {
-  //If the signal is composed and not uploaded, returns the pre-determined maximum frequenc
+async function getMaxFrequency() {
+  //If the signal is composed and not uploaded, returns the pre-determined maximum frequency
+  let maxFrequency;
   if (isComposed == true && isUploaded == false) {
-    const maxFrequency = maxComposedFrequency;
-    return maxFrequency;
+    maxFrequency = maxComposedFrequency;
+    //return maxFrequency;
   } else {
-    // Calculate the time step between samples
-    const timeStep = data.x[1] - data.x[0];
-    // Determine the units of the x values
-    const units = data.xUnits || "";
-    // Convert the time step to seconds if necessary
-    if (units === "ms") {
-      timeStep /= 1000;
-    } else if (units === "us") {
-      timeStep /= 1000000;
-    }
-    // Calculate the sampling frequency
-    const samplingFrequency = 1 / timeStep;
-    // Calculate the Nyquist frequency
-    const nyquistFrequency = samplingFrequency / 2;
-    // Calculate the maximum frequency
-    const maxFrequency = nyquistFrequency;
-    console.log(maxFrequency);
-    return maxFrequency;
+    const response = await fetch("/getMaxFreq", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ signalX: signals[0].x, signalY: signals[0].y }),
+    });
+    const data = await response.json();
+    maxFrequency = data.fmax;
+    //return maxFrequency;
   }
+  return maxFrequency;
+
 }
 
 //--------------------------------------UPDATE FUNCTIONS----------------------------------------
@@ -546,11 +545,12 @@ function updateDifferenceGraph(differenceData) {
 }
 
 //This function to update the sampling rate based on the normalized slider value
-function updateSamplingRateNormalized() {
+async function updateSamplingRateNormalized() {
   // Get the current value of the slider
   const sliderValue = parseFloat(normalizedValueSlider.value);
   // Get the maximum frequency from the signal data
-  const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+  const maxFrequency = await getMaxFrequency();
+  console.log(maxFrequency);
   // Calculate the new sampling rate based on the slider value and the maximum frequency
   const newSamplingRate = sliderValue * maxFrequency;
   // Update the sampling rate input element and the displayed value
@@ -563,11 +563,12 @@ function updateSamplingRateNormalized() {
 }
 
 //This function to update the sampling rate based on the actual slider value
-function updateSamplingRateActual() {
+async function updateSamplingRateActual() {
   // Get the current value of the slider
   const sliderValue = parseFloat(freqValueSlider.value);
   // Get the maximum frequency from the signal data
-  const maxFrequency = getMaxFrequency(signalGraph.data[0]);
+  const maxFrequency = await getMaxFrequency();
+  //console.log(maxFrequency);
   //Defines the range that will be used in the slider
   const maxFrequencyRange = [0, 4 * maxFrequency];
   // Set the minimum and maximum values of the slider
