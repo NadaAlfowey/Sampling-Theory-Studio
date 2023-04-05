@@ -473,9 +473,11 @@ async function getMaxFrequency() {
       body: JSON.stringify({ signalX: signals[0].x, signalY: signals[0].y }),
     });
     const data = await response.json();
-    const maxFrequency = data.fmax;
-    return maxFrequency;
+    maxFrequency = data.fmax;
+    //return maxFrequency;
   }
+    return maxFrequency;
+
 }
 
 //--------------------------------------UPDATE FUNCTIONS----------------------------------------
