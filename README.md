@@ -1,10 +1,10 @@
 # Sampling-Theory-Studio
 ## Table of contents:
 - [Introduction](#introduction)
-- [Project Features](#project-features)
 - [Project Structure](#project-structure)
+- [Project Features](#project-features)
 - [Getting Started](#getting-started)
-- [Team]()
+- [Team](#team)
 
 
 ### Introduction
@@ -21,24 +21,6 @@ interpolation formula.
 `Sampling Formula -> Fsample >= 2 * Fmaximum`
 
 ![](data/readme%20data/SampLab.gif) -->
-
-### Project Features
-In this web application you can
-> 1. Upload signals from your device as a CSV file format:
-![](data/readme%20data/upload.gif)
-> 2. Generate random signals from signal composer:
-![](data/readme%20data/composer.gif)
-> 3. Sum signals using signal composer and save it as a CSV file on your device:
-![](data/readme%20data/saving.gif)
-> 4. Remove signal components from the current signal:
-![](data/readme%20data/remove.gif)
-> 5. Add Noise to the signal:
-![](data/readme%20data/noise.gif)
-> 6. Sample the signal, reconstruct it from sampled points, and display the difference between them:
-![](data/readme%20data/sampling.gif)
-> 7. Change the sampling rate using the normalized and actual frequency sliders:
-![](data/readme%20data/sliders.gif)
-
 
 ### Project Structure
 The Web Application is built using:
@@ -66,8 +48,40 @@ master
 └─ README.md
 ```
 
+### Project Features
+In this web application you can:-
+> 1. Upload signals from your device as a CSV file format:
+
+![](data/readme%20data/upload.gif)
+
+> 2. Generate random signals from signal composer:
+
+![](data/readme%20data/composer.gif)
+
+> 3. Sum signals using signal composer and save it as a CSV file on your device:
+
+![](data/readme%20data/saving.gif)
+
+> 4. Remove signal components from the current signal:
+
+![](data/readme%20data/remove.gif)
+
+> 5. Add Noise to the signal:
+
+![](data/readme%20data/noise.gif)
+
+> 6. Sample the signal, reconstruct it from sampled points, and display the difference between them:
+
+![](data/readme%20data/sampling.gif)
+
+> 7. Change the sampling rate using the normalized and actual frequency sliders:
+
+![](data/readme%20data/sliders.gif)
+
+
 ### Getting Started
 To get started with the Signal Sampling and Recovery Web Application, follow these steps:
+
 1.Clone the repository:
 ``` 
 git clone https://github.com/your-username/signal-sampling-recovery.git
@@ -95,6 +109,7 @@ python app.py
 
 ### Note
 The application has been tested on Google Chrome, Microsoft Edge and Mozilla Firefox web browsers.
+
 ### Team
 Biomedical Signal Processing (SBEN311) class task created by:
 
