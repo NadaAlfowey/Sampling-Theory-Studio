@@ -373,6 +373,13 @@ function sampleData(samplingRate) {
     // increment the time variable by the sample interval
     timeValue += sampleInterval;
   }
+  //Pushes X and Y values of last signal to the array of sampled data 
+  const lastX = data.x[data.x.length - 1];
+  const lastY = data.y[data.y.length - 1];
+  sampledData.push({
+    x: lastX,
+    y: lastY,
+  });
   //isFirst is set to false to indicate that this is not the first time sampleData is being called
   isFirst = false;
   // add a new trace to the plot
