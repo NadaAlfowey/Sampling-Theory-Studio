@@ -75,7 +75,7 @@ To get started with the Signal Sampling and Recovery Web Application, follow the
 ``` 
 git clone https://github.com/your-username/signal-sampling-recovery.git
 ``` 
-2. Install Python3 in your computer
+2. Install Python3:
 ``` 
 Download it from www.python.org/downloads/
 ```
