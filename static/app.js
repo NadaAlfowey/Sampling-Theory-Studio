@@ -102,7 +102,8 @@ SNRrange.addEventListener("change", () => {
   //const noisySignal = generateNoise(signalData, noisePower);
   update = { y: [noisySignal] };
   Plotly.update(signalGraph, update, {}, [0]);
-  updateDifferenceOne();
+  if(reconstructedGraph.data.length!=0)
+  updateReconstruction()
 });
 
 // event listener to the file upload input element to trigger when a file is selected
@@ -153,6 +154,7 @@ removeSignalComponentButton.addEventListener("click", () => {
   signalComponentSelect.remove(selectedIndex);
   // update the signal graph after removing the component
   updateSignal();
+  
 });
 
 // event listener to the savebutton element that listens for a 'click' event
@@ -257,12 +259,12 @@ function composeCosineSignal() {
     wave.y.push(value);
   }
   // check if any signals have been added before,if no add to signals array else update the component list
-  if (signals.length == 0) {
+  //if (signals.length == 0) {
     signals.push(wave);
-  } else {
+  //} else {
     NumComposedSignals++;
     updateSignalComponentsList(frequency, amplitude); // update the list of signal components on the page
-  }
+  //}
   // add the component to the plot
   addComponent(wave);
   isComposed = true;
@@ -299,6 +301,20 @@ function removeComponent(optionText) {
   );
   let amplitude, frequency;
   if (match) {
+    const selectElement = document.getElementById("components");
+    const numOptions = selectElement.options.length;
+    if(numOptions-1==1){
+      NumComposedSignals=0;
+      signalGraph.data.length == 2
+        ? Plotly.deleteTraces(signalGraph, [0, 1])
+        : Plotly.deleteTraces(signalGraph, 0);
+        if (reconstructedGraph.data.length != 0) {  
+          Plotly.deleteTraces(reconstructedGraph, 0);
+          Plotly.deleteTraces(differenceGraph, 0);
+        }
+        isFirst=true;
+      return
+    }
     frequency = parseInt(match[1]);
     amplitude = parseInt(match[2]);
   }
@@ -318,7 +334,6 @@ function removeComponent(optionText) {
     signals[0].y[amplitude] = signals[0].y[amplitude] - cosSignal[amplitude]; // Update the signal's data
   }
   // Update the plot with the new signal data
-  Plotly.update(signalGraph, { y: [signalRemovedComponent] }, {}, 0);
 }
 
 // This function updates the signal components list with the new composed signal.
@@ -342,7 +357,7 @@ function sampleData(samplingRate) {
     sampledData = [];
   }
   //gets the last uploaded signal from the signals array
-  const data = signals[signals.length - 1];
+  const data = signalGraph.data[0];
   //gets the duration of the signal, which is the last value in the x array
   const duration = data.x[data.x.length - 1];
   //calculates the number of samples to take by multiplying the timeValue by the samplingRate
@@ -491,6 +506,7 @@ async function getMaxFrequency() {
 //This function updates signals graphs
 function updateSignal() {
   // Update the signalGraph plot with the current signal data
+  if(signalGraph.data.length!=0){
   Plotly.update(
     signalGraph,
     { y: [signalGraph.data[0].y], x: [signalGraph.data[0].x] },
@@ -502,6 +518,7 @@ function updateSignal() {
     // Update the signal reconstruction plot
     updateReconstruction();
   }
+}
 }
 
 //This function updates reconstructedGraph and then the differenceGraph
@@ -550,7 +567,6 @@ async function updateSamplingRateNormalized() {
   const sliderValue = parseFloat(normalizedValueSlider.value);
   // Get the maximum frequency from the signal data
   const maxFrequency = await getMaxFrequency();
-  console.log(maxFrequency);
   // Calculate the new sampling rate based on the slider value and the maximum frequency
   const newSamplingRate = sliderValue * maxFrequency;
   // Update the sampling rate input element and the displayed value
