@@ -193,6 +193,7 @@ samplingRInput.addEventListener("change", async function () {
   //await updateSamplingRateNormalized();
 });
 
+// event listener to clear all graphs and select menu
 clearGraph.addEventListener("click",()=>{
   if(signalGraph.data.length==1)
   Plotly.deleteTraces(signalGraph, [0]);
