@@ -1,25 +1,26 @@
 //---------------------------------DOM VARIABLES-----------------------------------------------
 
-let normalizedValueSlider = document.getElementById("normalizedValue");
-let normalizedValueDisplay = document.getElementById("normalizedValueDisplay");
-let freqValueSlider = document.getElementById("freqValue");
-let freqValueDisplay = document.getElementById("freqValueDisplay");
+const normalizedValueSlider = document.getElementById("normalizedValue");
+const normalizedValueDisplay = document.getElementById("normalizedValueDisplay");
+const freqValueSlider = document.getElementById("freqValue");
+const freqValueDisplay = document.getElementById("freqValueDisplay");
 
-let signalGraph = document.getElementById("signal");
-let reconstructedGraph = document.getElementById("reconstructed");
-let differenceGraph = document.getElementById("difference");
+const signalGraph = document.getElementById("signal");
+const reconstructedGraph = document.getElementById("reconstructed");
+const differenceGraph = document.getElementById("difference");
 
-let uploadFile = document.getElementById("signaluploadfile");
-let composerFrequency = document.getElementById("frequency");
-let composerAmplitude = document.getElementById("amplitude");
-let signalComposerButton = document.getElementById("addsignalcomposer");
-let samplingFrequency = document.getElementById("samplingfrequency");
-let SNRrange = document.getElementById("noise");
-let SNRvalue = document.getElementById("noisevalue");
-let signalComponentSelect = document.getElementById("components");
-let removeSignalComponentButton = document.getElementById("removecomponent");
-let samplingRInput = document.getElementById("sampling-rate-input");
+const uploadFile = document.getElementById("signaluploadfile");
+const composerFrequency = document.getElementById("frequency");
+const composerAmplitude = document.getElementById("amplitude");
+const signalComposerButton = document.getElementById("addsignalcomposer");
+const samplingFrequency = document.getElementById("samplingfrequency");
+const SNRrange = document.getElementById("noise");
+const SNRvalue = document.getElementById("noisevalue");
+const signalComponentSelect = document.getElementById("components");
+const removeSignalComponentButton = document.getElementById("removecomponent");
+const samplingRInput = document.getElementById("sampling-rate-input");
 const saveButton = document.getElementById("saveButton");
+const clearGraph=document.getElementById("cleargraph")
 
 //---------------------------------VARIABLE INITIALIZATION-------------------------------------
 let sampledData = [];
@@ -53,6 +54,7 @@ freqValueSlider.addEventListener("input", () => {
 });
 
 SNRrange.addEventListener("change", () => {
+  let snrRangeValue = 199 - SNRrange.value;
   SNRvalue.innerHTML = SNRrange.value;
   // calculate the power of signal (amplitude)
   //signal power = signal values ^2
@@ -85,7 +87,7 @@ SNRrange.addEventListener("change", () => {
   //attenuation is used to scale the generated noise signal before adding it to the original signal.
   //This helps to achieve the desired SNR level while preserving the original characteristics of the signal.
   //attenuation factor is a measure of signal loss, while SNR is a measure of the signal quality in relation to the noise level.
-  const attenuation = signalPower / (SNRrange.value * noisePower);
+  const attenuation = signalPower / (snrRangeValue * noisePower);
   //multiply each val in the noise by the attenuation factor
   generatedNoiseArr = generatedNoiseArr.map((noise) => noise * attenuation);
   //add the noise to the original signal
@@ -191,6 +193,23 @@ samplingRInput.addEventListener("change", async function () {
   //await updateSamplingRateNormalized();
 });
 
+clearGraph.addEventListener("click",()=>{
+  if(signalGraph.data.length==1)
+  Plotly.deleteTraces(signalGraph, [0]);
+  else if (signalGraph.data.length==2)
+  Plotly.deleteTraces(signalGraph, [0,1]);
+
+  if(reconstructedGraph.data)
+  Plotly.deleteTraces(reconstructedGraph, -1);
+  if(differenceGraph.data)
+  Plotly.deleteTraces(differenceGraph, -1);
+
+  for (let i = signalComponentSelect.options.length - 1; i > 1; i--) {
+    signalComponentSelect.remove(i);
+  }
+  NumComposedSignals = 0;
+  signals.pop();
+})
 //---------------------------------------UTITILITY FUNCTIONS------------------------------------------------
 function createPlot(graphElement) {
   let layout = {
@@ -334,6 +353,8 @@ function removeComponent(optionText) {
     signals[0].y[amplitude] = signals[0].y[amplitude] - cosSignal[amplitude]; // Update the signal's data
   }
   // Update the plot with the new signal data
+  Plotly.update(signalGraph, { y: [signalRemovedComponent] }, {}, 0);
+  updateSignal();
 }
 
 // This function updates the signal components list with the new composed signal.
@@ -499,7 +520,6 @@ async function getMaxFrequency() {
     //return maxFrequency;
   }
   return maxFrequency;
-
 }
 
 //--------------------------------------UPDATE FUNCTIONS----------------------------------------
