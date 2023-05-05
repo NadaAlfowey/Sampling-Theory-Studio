@@ -42,10 +42,10 @@ window.addEventListener("load", function () {
   Plotly.relayout(differenceGraph, { title: "Difference" });
 });
 
-// update the sampling frequency according to normalized value slider
-normalizedValueSlider.addEventListener("input", () => {
-  updateSamplingRateNormalized();
-});
+// // update the sampling frequency according to normalized value slider
+// normalizedValueSlider.addEventListener("input", () => {
+//   updateSamplingRateNormalized();
+// });
 
 // update the sampling frequency input according to actual value slider
 freqValueSlider.addEventListener("input", () => {
@@ -199,6 +199,7 @@ function createPlot(graphElement) {
     yaxis: {
       title: "Amplitude",
     },
+    showlegend : false,
   };
   Plotly.newPlot(graphElement, [], layout, {
     displaylogo: false,
@@ -248,9 +249,9 @@ function composeCosineSignal() {
   let amplitude = composerAmplitude.value;
   let wave = { x: [], y: [], name: "original signal" };
   // iterate over 1000 time durations to generate the signal of 1000 sample
-  for (let duration = 0; duration < 1000; duration++) {
+  for (let duration = 0; duration < 2000; duration++) {
     // calculate the time value for the current duration
-    let timeValue = duration / 1000;
+    let timeValue = duration / 500;
     // calculate the cosine value using the time and frequency values
     var value = amplitude * Math.cos(2 * Math.PI * frequency * timeValue);
     wave.x.push(timeValue);
