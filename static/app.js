@@ -280,13 +280,13 @@ function composeCosineSignal() {
     wave.x.push(timeValue);
     wave.y.push(value);
   }
-  // check if any signals have been added before,if no add to signals array else update the component list
-  if (signals.length == 0) {
+    // check if any signals have been added before,if no add to signals array else update the component list
+  //if (signals.length == 0) {
     signals.push(wave);
-  } else {
+  //} else {
     NumComposedSignals++;
     updateSignalComponentsList(frequency, amplitude); // update the list of signal components on the page
-  }
+  //}
   // add the component to the plot
   addComponent(wave);
   isComposed = true;
