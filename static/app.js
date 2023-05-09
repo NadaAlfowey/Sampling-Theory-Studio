@@ -270,21 +270,21 @@ function composeCosineSignal() {
   let amplitude = composerAmplitude.value;
   let wave = { x: [], y: [], name: "original signal" };
   // iterate over 1000 time durations to generate the signal of 1000 sample
-  for (let duration = 0; duration < 1000; duration++) {
+  for (let duration = 0; duration < 2000; duration++) {
     // calculate the time value for the current duration
-    let timeValue = duration / 1000;
+    let timeValue = duration / 500;
     // calculate the cosine value using the time and frequency values
     var value = amplitude * Math.cos(2 * Math.PI * frequency * timeValue);
     wave.x.push(timeValue);
     wave.y.push(value);
   }
   // check if any signals have been added before,if no add to signals array else update the component list
-  //if (signals.length == 0) {
+  if (signals.length == 0) {
     signals.push(wave);
-  //} else {
+  } else {
     NumComposedSignals++;
     updateSignalComponentsList(frequency, amplitude); // update the list of signal components on the page
-  //}
+  }
   // add the component to the plot
   addComponent(wave);
   isComposed = true;
