@@ -222,7 +222,7 @@ function createPlot(graphElement) {
       title: "Amplitude",
     },
     showlegend: false,
-
+    margin: { l: 75, r: 75, t: 50, b: 40 },
   };
   Plotly.newPlot(graphElement, [], layout, {
     displaylogo: false,
